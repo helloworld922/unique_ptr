@@ -16,6 +16,7 @@
 #include <boost/default_delete.hpp>
 //#include <boost/utility/enable_if.hpp>
 #include <boost/move/move.hpp>
+#include <functional>
 //#include <boost/preprocessor/comma.hpp>
 //#include <boost/type_traits.hpp>
 #else
@@ -323,39 +324,87 @@ namespace boost
 
         unique_ptr(pointer ptr,
         BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
-    ptr(ptr), del(::boost::move(d2))
+        ptr(ptr), del(::boost::move(d2))
+        {
+        }
+
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        {
+            u.ptr = pointer();
+        }
+
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        {
+            u.ptr = U::pointer();
+        }
+
+        ~unique_ptr(void)
+        {
+            if(get() != BOOST_NULLPTR)
+            {
+                get_deleter()(get());
+            }
+        }
+
+    private:
+        pointer ptr;
+        deleter_type del;
+    };
+
+    template<class T1, class D1, class T2, class D2>
+    bool operator==(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
     {
+        return lhs.get() == rhs.get();
     }
 
-    unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
-            {
-                u.ptr = pointer();
-            }
+    template<class T1, class D1, class T2, class D2>
+    bool operator!=(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
+    {
+        return lhs.get() != rhs.get();
+    }
 
-            template<typename U, typename E>
-            unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
-            {
-                u.ptr = U::pointer();
-            }
+    template<class T1, class D1, class T2, class D2>
+    bool operator<(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
+    {
+        return std::less<
+                typename ::boost::common_type<
+                        typename ::boost::unique_ptr<T1, D1>::pointer,
+                        typename ::boost::unique_ptr<T2, D2>::pointer>::type>(
+                lhs.get(), rhs.get());
+    }
 
-            ~unique_ptr(void)
-            {
-                if(get() != BOOST_NULLPTR)
-                {
-                    get_deleter()(get());
-                }
-            }
+    template<class T1, class D1, class T2, class D2>
+    bool operator<=(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
+    {
+        return !(rhs < lhs);
+    }
 
-        private:
-            pointer ptr;
-            deleter_type del;
-        };
+    template<class T1, class D1, class T2, class D2>
+    bool operator>(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
+    {
+        return rhs < lhs;
+    }
+
+    template<class T1, class D1, class T2, class D2>
+    bool operator>=(const ::boost::unique_ptr<T1, D1>& lhs,
+            const ::boost::unique_ptr<T2, D2>& rhs)
+    {
+        return !(lhs < rhs);
+    }
+
+// TODO: how do we compare vs. nullptr_t?
 
 #undef BOOST_NULLPTR
 #undef BOOST_COMMA
 #else
 // use standard library features
-    using std::unique_ptr;
+using std::unique_ptr;
 #endif
 }
 #endif // UNIQUE_PTR_HPP_
