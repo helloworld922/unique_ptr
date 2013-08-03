@@ -194,7 +194,7 @@ namespace boost
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // TODO: why can't this be move?
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.get_deleter()))
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.get_deleter()))
         {
         }
 
@@ -418,7 +418,7 @@ namespace boost
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // TODO: why can't this be move?
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.get_deleter()))
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.get_deleter()))
         {
         }
 
