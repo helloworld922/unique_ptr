@@ -179,7 +179,6 @@ namespace boost
         unique_ptr(void) :
                 ptr(), del()
         {
-
         }
 
 #if !defined(BOOST_NO_CXX11_NULLPTR)
@@ -210,24 +209,21 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        // TODO: why can't this be move?
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.del))
-        {
-        }
+        // TODO: why is this overload even needed?
+//        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.del))
+//        {
+//        }
 
-        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::move(u.del))
         {
         }
 
-        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u) : ptr(u.release()), del(u.del)
         {
         }
 
-        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
         {
@@ -257,16 +253,17 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
-        {
-            if(this != &r)
-            {
-                reset(r.release());
-                // TODO: why can't this be move?
-                del = ::boost::forward<Deleter>(r.get_deleter());
-            }
-            return *this;
-        }
+        // TODO: why is this needed?
+//        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
+//        {
+//            if(this != &r)
+//            {
+//                reset(r.release());
+//                // TODO: why can't this be move?
+//                del = ::boost::forward<Deleter>(r.get_deleter());
+//            }
+//            return *this;
+//        }
 
         template<class U, class E>
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
@@ -274,11 +271,33 @@ namespace boost
             if(this != &r)
             {
                 reset(r.release());
-                // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
-                del = boost::forward<E>(r.get_deleter());
+                del = boost::move(r.del);
             }
             return *this;
         }
+
+        template<class U, class E>
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                del = r.del;
+            }
+            return *this;
+        }
+
+        // err... this really shouldn't be legal?
+//        template<class U, class E>
+//        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) r)
+//        {
+//            if(this != &r)
+//            {
+//                reset(r.release());
+//                del = r.del;
+//            }
+//            return *this;
+//        }
 #else
         unique_ptr& operator=(unique_ptr&& r)
         {
@@ -328,15 +347,35 @@ namespace boost
         typedef T element_type;
         typedef Deleter deleter_type;
 
-        Deleter& get_deleter(void)
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        typename ::boost::conditional<boost::is_reference<deleter_type>::value,
+                deleter_type,
+                typename ::boost::remove_reference<deleter_type>::type&>::type get_deleter(
+                void)
         {
             return del;
         }
 
-        const Deleter& get_deleter(void) const
+        const typename ::boost::conditional<
+                boost::is_reference<deleter_type>::value, deleter_type,
+                typename ::boost::remove_reference<deleter_type>::type&>::type get_deleter(
+                void) const
         {
             return del;
         }
+#else
+        deleter_type& get_deleter(
+                void)
+        {
+            return del;
+        }
+
+        const deleter_type& get_deleter(
+                void) const
+        {
+            return del;
+        }
+#endif
 
         pointer release(void)
         {
@@ -428,13 +467,12 @@ namespace boost
         explicit unique_ptr(pointer ptr) :
                 ptr(ptr), del()
         {
-
         }
 
         unique_ptr(pointer ptr,
                 typename ::boost::conditional<
                         ::boost::is_reference<deleter_type>::value,
-                        deleter_type, const deleter_type&>::type d1) :
+                        deleter_type, const ::boost::remove_reference<deleter_type>&>::type d1) :
                 ptr(ptr), del(d1)
         {
         }
@@ -446,15 +484,26 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::forward<Deleter>(u.get_deleter()))
+        // TODO: is this needed?
+//        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::forward<Deleter>(u.get_deleter()))
+//        {
+//        }
+
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::move(u.del))
         {
         }
 
-        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::forward<E>(u.get_deleter()))
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u) : ptr(u.release()), del(u.del)
         {
         }
+
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
+        {
+        }
+
 #else
         unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward<Deleter>(u.get_deleter()))
         {
@@ -475,16 +524,17 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
-        {
-            if(this != &r)
-            {
-                reset(r.release());
-                // TODO: why can't this be move?
-                del = ::boost::forward<Deleter>(r.get_deleter());
-            }
-            return *this;
-        }
+        // TODO: is this needed?
+//        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
+//        {
+//            if(this != &r)
+//            {
+//                reset(r.release());
+//                // TODO: why can't this be move?
+//                del = ::boost::forward<Deleter>(r.get_deleter());
+//            }
+//            return *this;
+//        }
 
         template<class U, class E>
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
@@ -492,8 +542,18 @@ namespace boost
             if(this != &r)
             {
                 reset(r.release());
-                // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
-                del = boost::forward<E>(r.get_deleter());
+                del = boost::move(r.del);
+            }
+            return *this;
+        }
+
+        template<class U, class E>
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                del = r.del;
             }
             return *this;
         }
