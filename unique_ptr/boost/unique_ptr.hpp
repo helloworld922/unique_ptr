@@ -1,7 +1,7 @@
 //
 // unique_ptr.hpp
 //
-// (c) 2013 helloworld922
+// (c) 2013 Andrew Ho
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
 //  accompanying file LICENSE_1_0.txt or copy at
@@ -14,10 +14,8 @@
 
 #if defined(BOOST_NO_CXX11_SMART_PTR)
 #include <boost/default_delete.hpp>
-//#include <boost/utility/enable_if.hpp>
 #include <boost/move/move.hpp>
 #include <functional>
-//#include <boost/preprocessor/comma.hpp>
 //#include <boost/type_traits.hpp>
 #endif
 
