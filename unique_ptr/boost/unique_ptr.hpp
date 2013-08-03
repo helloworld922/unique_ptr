@@ -185,14 +185,27 @@ namespace boost
         {
         }
 
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.del))
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        // TODO: why can't this be move?
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.get_deleter()))
+        {
+        }
+
+        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(u.get_deleter())
+        {
+        }
+#else
+        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward(u.get_deleter()))
         {
         }
 
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(::boost::move(u.del))
+        unique_ptr(unique_ptr<U, E>&& u) : ptr(::boost::move(u.release())), del(std::forward<E>(u.get_deleter()))
         {
         }
+#endif
 
         template<typename U>
         unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) : ptr(::boost::move(u.release())), del()
@@ -207,24 +220,14 @@ namespace boost
             }
         }
 
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
         {
             if(this != &r)
             {
                 reset(r.release());
-                // TODO: forward deleter
-            }
-            return *this;
-        }
-#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        template<class U, class E>
-        unique_ptr& operator=(::boost::unique_ptr<U, E>& r)
-        {
-            if(this != &r)
-            {
-                reset(r.release());
-                // copy deleter
-                del = r.get_deleter();
+                // TODO: why can't this be move?
+                del = ::boost::move(r.get_deleter());
             }
             return *this;
         }
@@ -235,12 +238,23 @@ namespace boost
             if(this != &r)
             {
                 reset(r.release());
-                // move deleter
-                del = ::boost::move(r.get_deleter());
+                // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
+                del = r.get_deleter();
             }
             return *this;
         }
 #else
+        unique_ptr& operator=(unique_ptr&& r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // forward deleter
+                del = std::forward<deleter_type>(r.get_deleter());
+            }
+            return *this;
+        }
+
         template<class U, class E>
         unique_ptr& operator=(unique_ptr<U, E>&& r)
         {
@@ -386,16 +400,27 @@ namespace boost
         {
         }
 
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        // TODO: why can't this be move?
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.get_deleter()))
         {
-            u.ptr = pointer();
+        }
+
+        // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(u.get_deleter())
+        {
+        }
+#else
+        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward(u.get_deleter()))
+        {
         }
 
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        unique_ptr(unique_ptr<U, E>&& u) : ptr(::boost::move(u.release())), del(std::forward<E>(u.get_deleter()))
         {
-            u.ptr = U::pointer();
         }
+#endif
 
         ~unique_ptr(void)
         {
@@ -404,6 +429,62 @@ namespace boost
                 get_deleter()(get());
             }
         }
+
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // TODO: why can't this be move?
+                del = ::boost::move(r.get_deleter());
+            }
+            return *this;
+        }
+
+        template<class U, class E>
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
+                del = r.get_deleter();
+            }
+            return *this;
+        }
+#else
+        unique_ptr& operator=(unique_ptr&& r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // forward deleter
+                del = std::forward<deleter_type>(r.get_deleter());
+            }
+            return *this;
+        }
+
+        template<class U, class E>
+        unique_ptr& operator=(unique_ptr<U, E>&& r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // forward deleter
+                del = std::forward<E>(r.get_deleter());
+            }
+            return *this;
+        }
+#endif
+
+#if !defined(BOOST_NO_CXX11_NULLPTR)
+        unique_ptr& operator=(std::nullptr_t)
+        {
+            reset();
+            return *this;
+        }
+#endif
 
     private:
         pointer ptr;
@@ -456,7 +537,9 @@ namespace boost
         return !(lhs < rhs);
     }
 
-// TODO: how do we compare vs. nullptr_t?
+#if !defined(BOOST_NO_CXX11_NULLPTR)
+// TODO: comparison operators for nullptr_t
+#endif
 
 #undef BOOST_NULLPTR
 #undef BOOST_COMMA
