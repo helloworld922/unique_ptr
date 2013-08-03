@@ -16,6 +16,7 @@
 #include <boost/default_delete.hpp>
 //#include <boost/utility/enable_if.hpp>
 #include <boost/move/move.hpp>
+//#include <boost/preprocessor/comma.hpp>
 //#include <boost/type_traits.hpp>
 #else
 #include <memory>
@@ -30,6 +31,8 @@ namespace boost
 #else
 #define BOOST_NULLPTR nullptr
 #endif
+
+#define BOOST_COMMA ,
 
     namespace detail
     {
@@ -70,6 +73,7 @@ namespace boost
     template<class T, class Deleter = ::boost::default_delete<T> >
     class unique_ptr
     {
+    BOOST_MOVABLE_BUT_NOT_COPYABLE(unique_ptr)
     public:
         typedef typename ::boost::detail::pointer_type_switch<T, Deleter,
                 ::boost::detail::has_pointer_type<Deleter>::value>::type pointer;
@@ -77,15 +81,84 @@ namespace boost
         typedef T element_type;
         typedef Deleter deleter_type;
 
+        Deleter& get_deleter(void)
+        {
+            return del;
+        }
+
+        const Deleter& get_deleter(void) const
+        {
+            return del;
+        }
+
+        pointer release(void)
+        {
+            pointer tmp = ptr;
+            ptr = BOOST_NULLPTR;
+            return tmp;
+        }
+
+        pointer get(void) const
+        {
+            return ptr;
+        }
+
+        void reset(pointer p = pointer())
+        {
+            pointer old_ptr = ::boost::move(ptr);
+            ptr = p;
+            if (old_ptr != BOOST_NULLPTR)
+            {
+                get_deleter()(old_ptr);
+            }
+        }
+
+        void swap(unique_ptr& other)
+        {
+            if (this != &other)
+            {
+                // swap managed objects
+                pointer tmp = ptr;
+                ptr = other.ptr;
+                other.ptr = tmp;
+                // swap deleter
+                deleter_type d = del;
+                del = ::boost::move(other.del);
+                other.del = ::boost::move(d);
+            }
+        }
+
+        typename ::boost::add_lvalue_reference<T>::type operator*(void) const
+        {
+            return *get();
+        }
+
+        pointer operator->(void) const
+        {
+            return get();
+        }
+
+#if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
+        operator bool(void) const
+        {
+            return get() != BOOST_NULLPTR;
+        }
+#else
+        explicit operator bool(void) const
+        {
+            return get() != BOOST_NULLPTR;
+        }
+#endif
+
         unique_ptr(void) :
-                ptr(BOOST_NULLPTR), del()
+                ptr(), del()
         {
 
         }
 
 #if !defined(BOOST_NO_CXX11_NULLPTR)
         unique_ptr(std::nullptr_t) :
-                ::boost::unique_ptr<T, Deleter>()
+        ::boost::unique_ptr<T, Deleter>()
         {
 
         }
@@ -106,14 +179,28 @@ namespace boost
         }
 
         unique_ptr(pointer ptr,
-                BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
+        BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
         ptr(ptr), del(::boost::move(d2))
         {
         }
 
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        {
+            u.ptr = pointer();
+        }
+
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        {
+            u.ptr = U::pointer();
+        }
+
         ~unique_ptr(void)
         {
-            del(ptr);
+            if(get() != BOOST_NULLPTR)
+            {
+                get_deleter()(get());
+            }
         }
 
     private:
@@ -124,6 +211,7 @@ namespace boost
     template<class T, class Deleter>
     class unique_ptr<T[], Deleter>
     {
+    BOOST_MOVABLE_BUT_NOT_COPYABLE(unique_ptr)
     public:
         typedef typename ::boost::detail::pointer_type_switch<T, Deleter,
                 ::boost::detail::has_pointer_type<Deleter>::value>::type pointer;
@@ -131,15 +219,89 @@ namespace boost
         typedef T element_type;
         typedef Deleter deleter_type;
 
+        Deleter& get_deleter(void)
+        {
+            return del;
+        }
+
+        const Deleter& get_deleter(void) const
+        {
+            return del;
+        }
+
+        pointer release(void)
+        {
+            pointer tmp = ptr;
+            ptr = BOOST_NULLPTR;
+            return tmp;
+        }
+
+        pointer get(void) const
+        {
+            return ptr;
+        }
+
+        void reset(pointer p = pointer())
+        {
+            pointer old_ptr = ::boost::move(ptr);
+            ptr = p;
+            if (old_ptr != BOOST_NULLPTR)
+            {
+                get_deleter()(old_ptr);
+            }
+        }
+
+        void swap(unique_ptr& other)
+        {
+            if (this != &other)
+            {
+                // swap managed objects
+                pointer tmp = ptr;
+                ptr = other.ptr;
+                other.ptr = tmp;
+                // swap deleter
+                deleter_type d = del;
+                del = ::boost::move(other.del);
+                other.del = ::boost::move(d);
+            }
+        }
+
+        typename ::boost::add_lvalue_reference<T>::type operator*(void) const
+        {
+            return *get();
+        }
+
+        pointer operator->(void) const
+        {
+            return get();
+        }
+
+        T& operator[](size_t i) const
+        {
+            return get()[i];
+        }
+
+#if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
+        operator bool(void) const
+        {
+            return get() != BOOST_NULLPTR;
+        }
+#else
+        explicit operator bool(void) const
+        {
+            return get() != BOOST_NULLPTR;
+        }
+#endif
+
         unique_ptr(void) :
-                ptr(BOOST_NULLPTR), del()
+                ptr(), del()
         {
 
         }
 
 #if !defined(BOOST_NO_CXX11_NULLPTR)
         unique_ptr(std::nullptr_t) :
-                ::boost::unique_ptr<T, Deleter>()
+        ::boost::unique_ptr<T, Deleter>()
         {
 
         }
@@ -160,24 +322,40 @@ namespace boost
         }
 
         unique_ptr(pointer ptr,
-                BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
-            ptr(ptr), del(::boost::move(d2))
+        BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
+    ptr(ptr), del(::boost::move(d2))
+    {
+    }
+
+    unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
             {
+                u.ptr = pointer();
+            }
+
+            template<typename U, typename E>
+            unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+            {
+                u.ptr = U::pointer();
             }
 
             ~unique_ptr(void)
             {
-                del(ptr);
+                if(get() != BOOST_NULLPTR)
+                {
+                    get_deleter()(get());
+                }
             }
 
         private:
             pointer ptr;
             deleter_type del;
         };
+
 #undef BOOST_NULLPTR
+#undef BOOST_COMMA
 #else
 // use standard library features
-                using std::unique_ptr;
+    using std::unique_ptr;
 #endif
 }
 #endif // UNIQUE_PTR_HPP_
