@@ -122,7 +122,7 @@ namespace boost
                 other.ptr = tmp;
                 // swap deleter
                 deleter_type d = del;
-                del = ::boost::move(other.del);
+                del = ::boost::forward<Deleter>(other.del);
                 other.del = ::boost::move(d);
             }
         }
@@ -194,13 +194,13 @@ namespace boost
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // TODO: why can't this be move?
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.get_deleter()))
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::forward<Deleter>(u.get_deleter()))
         {
         }
 
         // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(u.get_deleter())
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::forward<E>(u.get_deleter()))
         {
         }
 #else
@@ -234,7 +234,7 @@ namespace boost
             {
                 reset(r.release());
                 // TODO: why can't this be move?
-                del = ::boost::move(r.get_deleter());
+                del = ::boost::forward<Deleter>(r.get_deleter());
             }
             return *this;
         }
@@ -246,7 +246,7 @@ namespace boost
             {
                 reset(r.release());
                 // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
-                del = r.get_deleter();
+                del = boost::forward<E>(r.get_deleter());
             }
             return *this;
         }
@@ -417,14 +417,13 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        // TODO: why can't this be move?
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::move(u.get_deleter()))
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(u.release()), del(::boost::forward<Deleter>(u.get_deleter()))
         {
         }
 
         // TODO: really should be forward<E>(u.get_deleter()), how can we emulate this in C++03?
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(u.get_deleter())
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::forward<E>(u.get_deleter()))
         {
         }
 #else
@@ -453,7 +452,7 @@ namespace boost
             {
                 reset(r.release());
                 // TODO: why can't this be move?
-                del = ::boost::move(r.get_deleter());
+                del = ::boost::forward<Deleter>(r.get_deleter());
             }
             return *this;
         }
@@ -465,7 +464,7 @@ namespace boost
             {
                 reset(r.release());
                 // TODO: really should be forward(u.get_deleter()), how can we emulate this in C++03?
-                del = r.get_deleter();
+                del = boost::forward<E>(r.get_deleter());
             }
             return *this;
         }
