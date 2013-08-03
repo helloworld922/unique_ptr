@@ -204,7 +204,7 @@ namespace boost
         {
         }
 #else
-        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward(u.get_deleter()))
+        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward<Deleter>(u.get_deleter()))
         {
         }
 
@@ -428,7 +428,7 @@ namespace boost
         {
         }
 #else
-        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward(u.get_deleter()))
+        unique_ptr(unique_ptr&& u) : ptr(::boost::move(u.release())), del(std::forward<Deleter>(u.get_deleter()))
         {
         }
 
