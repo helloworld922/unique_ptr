@@ -138,9 +138,18 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
-        operator bool(void) const
+        // safe bool idiom
+    private:
+        typedef void (unique_ptr::*bool_type)() const;
+        void this_type_does_not_support_comparisons() const
         {
-            return get() != BOOST_NULLPTR;
+        }
+    public:
+        operator bool_type(void) const
+        {
+            return (get() != BOOST_NULLPTR) ?
+                    (&unique_ptr::this_type_does_not_support_comparisons) :
+                    BOOST_NULLPTR;
         }
 #else
         explicit operator bool(void) const
@@ -353,9 +362,18 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
-        operator bool(void) const
+        // safe bool idiom
+    private:
+        typedef void (unique_ptr::*bool_type)() const;
+        void this_type_does_not_support_comparisons() const
         {
-            return get() != BOOST_NULLPTR;
+        }
+    public:
+        operator bool_type(void) const
+        {
+            return (get() != BOOST_NULLPTR) ?
+                    (&unique_ptr::this_type_does_not_support_comparisons) :
+                    BOOST_NULLPTR;
         }
 #else
         explicit operator bool(void) const
@@ -507,11 +525,7 @@ namespace boost
     bool operator<(const ::boost::unique_ptr<T1, D1>& lhs,
             const ::boost::unique_ptr<T2, D2>& rhs)
     {
-        return std::less<
-                typename ::boost::common_type<
-                        typename ::boost::unique_ptr<T1, D1>::pointer,
-                        typename ::boost::unique_ptr<T2, D2>::pointer>::type>(
-                lhs.get(), rhs.get());
+        return lhs.get() < rhs.get();
     }
 
     template<class T1, class D1, class T2, class D2>
