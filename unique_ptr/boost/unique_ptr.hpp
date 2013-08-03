@@ -12,12 +12,11 @@
 
 #include <boost/config.hpp>
 
-#define BOOST_NO_CXX11_SMART_PTR
-
 #if defined(BOOST_NO_CXX11_SMART_PTR)
-#include <boost/utility/enable_if.hpp>
+#include <boost/default_delete.hpp>
+//#include <boost/utility/enable_if.hpp>
 #include <boost/move/move.hpp>
-#include <boost/type_traits.hpp>
+//#include <boost/type_traits.hpp>
 #else
 #include <memory>
 #endif
@@ -31,66 +30,6 @@ namespace boost
 #else
 #define BOOST_NULLPTR nullptr
 #endif
-
-    // use custom unique_ptr implementation
-    template<class T>
-    struct default_delete
-    {
-    private:
-        template<typename U, typename EnableIfT>
-        default_delete(const default_delete<U>& d, EnableIfT dummy)
-        {
-
-        }
-
-    public:
-        default_delete(void)
-        {
-        }
-
-        template<class U>
-        default_delete(const default_delete<U>& d) :
-                default_delete<U>(d,
-                        ::boost::enable_if_c<
-                                ::boost::is_convertible<U*, T*>::value>::type)
-        {
-        }
-
-        void operator()(T* ptr) const
-        {
-            delete ptr;
-        }
-    };
-
-    template<class T>
-    struct default_delete<T[]>
-    {
-    private:
-        template<typename U, typename EnableIfT>
-        default_delete(const default_delete<U>& d, EnableIfT dummy)
-        {
-
-        }
-    public:
-        default_delete(void)
-        {
-        }
-
-        template<class U>
-        default_delete(const default_delete<U>& d) :
-                default_delete<U>(d,
-                        ::boost::enable_if_c<
-                                ::boost::is_convertible<U*, T*>::value>::type)
-        {
-        }
-
-        default_delete(const default_delete<T>& d);
-
-        void operator()(T* ptr) const
-        {
-            delete[] ptr;
-        }
-    };
 
     namespace detail
     {
@@ -131,7 +70,6 @@ namespace boost
     template<class T, class Deleter = ::boost::default_delete<T> >
     class unique_ptr
     {
-
     public:
         typedef typename ::boost::detail::pointer_type_switch<T, Deleter,
                 ::boost::detail::has_pointer_type<Deleter>::value>::type pointer;
@@ -186,7 +124,6 @@ namespace boost
     template<class T, class Deleter>
     class unique_ptr<T[], Deleter>
     {
-
     public:
         typedef typename ::boost::detail::pointer_type_switch<T, Deleter,
                 ::boost::detail::has_pointer_type<Deleter>::value>::type pointer;
@@ -240,7 +177,6 @@ namespace boost
 #undef BOOST_NULLPTR
 #else
 // use standard library features
-                using std::default_delete;
                 using std::unique_ptr;
 #endif
 }
