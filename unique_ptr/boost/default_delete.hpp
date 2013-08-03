@@ -32,7 +32,6 @@ namespace boost
         template<typename U, typename EnableIfT>
         default_delete(const default_delete<U>& d, EnableIfT dummy)
         {
-
         }
 
     public:
