@@ -19,9 +19,9 @@
 #include <functional>
 //#include <boost/preprocessor/comma.hpp>
 //#include <boost/type_traits.hpp>
-#else
-#include <memory>
 #endif
+
+#include <memory>
 
 namespace boost
 {
@@ -185,15 +185,18 @@ namespace boost
         {
         }
 
-        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        unique_ptr(BOOST_RV_REF(unique_ptr) u) : ptr(::boost::move(u.release())), del(::boost::move(u.del))
         {
-            u.ptr = pointer();
         }
 
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.ptr)), del(::boost::move(u.del))
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(::boost::move(u.release())), del(::boost::move(u.del))
         {
-            u.ptr = U::pointer();
+        }
+
+        template<typename U>
+        unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) : ptr(::boost::move(u.release())), del()
+        {
         }
 
         ~unique_ptr(void)
@@ -203,6 +206,61 @@ namespace boost
                 get_deleter()(get());
             }
         }
+
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // TODO: forward deleter
+            }
+            return *this;
+        }
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        template<class U, class E>
+        unique_ptr& operator=(::boost::unique_ptr<U, E>& r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // copy deleter
+                del = r.get_deleter();
+            }
+            return *this;
+        }
+
+        template<class U, class E>
+        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // move deleter
+                del = ::boost::move(r.get_deleter());
+            }
+            return *this;
+        }
+#else
+        template<class U, class E>
+        unique_ptr& operator=(unique_ptr<U, E>&& r)
+        {
+            if(this != &r)
+            {
+                reset(r.release());
+                // forward deleter
+                del = std::forward<E>(r.get_deleter());
+            }
+            return *this;
+        }
+#endif
+
+#if !defined(BOOST_NO_CXX11_NULLPTR)
+        unique_ptr& operator=(std::nullptr_t)
+        {
+            reset();
+            return *this;
+        }
+#endif
 
     private:
         pointer ptr;
