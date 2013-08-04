@@ -29,8 +29,9 @@ namespace boost
     struct default_delete
     {
     private:
-        template<typename U, typename EnableIfT>
-        default_delete(const default_delete<U>& d, EnableIfT dummy)
+
+        template<typename EnableIfT>
+        void test_exists()
         {
         }
 
@@ -40,11 +41,10 @@ namespace boost
         }
 
         template<class U>
-        default_delete(const default_delete<U>& d) :
-        default_delete<U>(d,
-                ::boost::enable_if_c<
-                ::boost::is_convertible<U*, T*>::value>::type)
+        default_delete(const default_delete<U>& d)
         {
+            test_exists<typename ::boost::enable_if_c<
+            ::boost::is_convertible<U*, T*>::value>::type>();
         }
 
         void operator()(T* ptr) const
@@ -57,25 +57,22 @@ namespace boost
     struct default_delete<T[]>
     {
     private:
-        template<typename U, typename EnableIfT>
-        default_delete(const default_delete<U>& d, EnableIfT dummy)
+        template<typename EnableIfT>
+        void test_exists()
         {
-
         }
+
     public:
         default_delete(void)
         {
         }
 
         template<class U>
-        default_delete(const default_delete<U>& d) :
-        default_delete<U>(d,
-                ::boost::enable_if_c<
-                ::boost::is_convertible<U*, T*>::value>::type)
+        default_delete(const default_delete<U>& d)
         {
+            test_exists<typename ::boost::enable_if_c<
+            ::boost::is_convertible<U[], T[]>::value>::type>();
         }
-
-        default_delete(const default_delete<T>& d);
 
         void operator()(T* ptr) const
         {
