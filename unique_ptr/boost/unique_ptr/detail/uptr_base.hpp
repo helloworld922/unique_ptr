@@ -65,16 +65,7 @@ namespace boost
             return ptr;
         }
 
-        void reset(void)
-        {
-            if (ptr != BOOST_NULLPTR)
-            {
-                del(ptr);
-                ptr = pointer();
-            }
-        }
-
-        void reset(pointer p)
+        void reset(pointer p = pointer())
         {
             pointer old_ptr = ::boost::move(ptr);
             ptr = p;
