@@ -29,51 +29,61 @@ namespace boost
     struct default_delete
     {
     private:
-
-        template<typename EnableIfT>
-        void test_exists()
-        {
-        }
+        // Used for testing if templated copy constructor can participate in overload resolution
+        struct nat
+        {};
 
     public:
         default_delete(void)
-        {
-        }
+        {}
 
+        default_delete(const default_delete& d)
+        {}
+
+        /**
+         * Technically allows an extra char
+         */
         template<class U>
-        default_delete(const default_delete<U>& d)
+        default_delete(const default_delete<U>& d, typename ::boost::enable_if_c<
+                ::boost::is_convertible<U*, T*>::value, nat>::type = nat())
         {
-            test_exists<typename ::boost::enable_if_c<
-            ::boost::is_convertible<U*, T*>::value>::type>();
+            //test_exists<>();
         }
 
+        /**
+         * Equivalent to: delete ptr;
+         */
         void operator()(T* ptr) const
         {
             delete ptr;
         }
     };
 
+    // array specialization
     template<class T>
     struct default_delete<T[]>
     {
     private:
-        template<typename EnableIfT>
-        void test_exists()
-        {
-        }
+        // Used for testing if templated copy constructor can participate in overload resolution
+        struct nat
+        {};
 
     public:
         default_delete(void)
-        {
-        }
+        {}
+
+        default_delete(const default_delete& d)
+        {}
 
         template<class U>
-        default_delete(const default_delete<U>& d)
+        default_delete(const default_delete<U>& d, typename ::boost::enable_if_c<
+                ::boost::is_convertible<U[], T[]>::value, nat>::type = nat())
         {
-            test_exists<typename ::boost::enable_if_c<
-            ::boost::is_convertible<U[], T[]>::value>::type>();
         }
 
+        /**
+         * Equivalent to delete[] ptr;
+         */
         void operator()(T* ptr) const
         {
             delete[] ptr;
