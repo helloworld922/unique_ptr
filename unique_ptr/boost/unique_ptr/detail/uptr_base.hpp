@@ -132,9 +132,9 @@ namespace boost
                 ptr = other.ptr;
                 other.ptr = tmp;
                 // swap deleter
-                deleter_type d = std::forward<deleter_type>(del);
-                del = std::forward<deleter_type>(other.del);
-                other.del = std::forward<deleter_type>(d);
+                deleter_type d = std::forward < deleter_type > (del);
+                del = std::forward < deleter_type > (other.del);
+                other.del = std::forward < deleter_type > (d);
             }
         }
 #endif
@@ -234,21 +234,23 @@ namespace boost
 #else
         unique_ptr(unique_ptr&& u) :
                 ptr(::boost::move(u.release())), del(
-                        std::forward<deleter_type>(u.del))
+                        std::forward < deleter_type > (u.del))
         {
         }
 
         template<typename U, typename E>
         unique_ptr(unique_ptr<U, E> && u) :
-                ptr(::boost::move(u.release())), del(std::forward<E>(u.del))
+                ptr(::boost::move(u.release())), del(std::forward < E > (u.del))
+        {
+        }
+
+        // TODO: std::auto_ptr is not marked as movable by move emulation. How should this be handled?
+        template<typename U>
+        unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) :
+                ptr(u.release()), del()
         {
         }
 #endif
-
-        template<typename U>
-        unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) : ptr(u.release()), del()
-        {
-        }
 
         ~unique_ptr(void)
         {
@@ -304,7 +306,7 @@ namespace boost
             {
                 reset(r.release());
                 // forward deleter
-                del = std::forward<deleter_type>(r.del);
+                del = std::forward < deleter_type > (r.del);
             }
             return *this;
         }
@@ -314,7 +316,7 @@ namespace boost
         {
             reset(r.release());
             // forward deleter
-            del = std::forward<E>(r.del);
+            del = std::forward < E > (r.del);
             return *this;
         }
 #endif
