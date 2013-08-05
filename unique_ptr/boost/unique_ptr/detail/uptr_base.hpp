@@ -18,6 +18,8 @@ namespace boost
     class unique_ptr
     {
         BOOST_MOVABLE_BUT_NOT_COPYABLE (unique_ptr)
+        // private typedefs
+
     public:
         typedef T element_type;
         typedef Deleter deleter_type;
@@ -28,6 +30,8 @@ namespace boost
     private:
         typedef typename ::boost::conditional< ::boost::is_reference<deleter_type>::value,
         deleter_type, typename ::boost::remove_reference<deleter_type>::type&>::type deleter_lref;
+
+
     public:
 
         deleter_lref get_deleter(
@@ -208,16 +212,25 @@ namespace boost
 //        {
 //        }
 
+// TODO: need to make sure this only participates in overload resolution if:
+// U is not an array type
+// if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::move(u.del))
         {
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u) : ptr(u.release()), del(u.del)
         {
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
         {
@@ -229,6 +242,9 @@ namespace boost
         {
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(unique_ptr<U, E> && u) :
                 ptr(::boost::move(u.release())), del(std::forward < E > (u.del))
@@ -236,9 +252,11 @@ namespace boost
         }
 
         // TODO: std::auto_ptr is not marked as movable by move emulation. How should this be handled?
+        // TODO: should only participate in overload resolution if U* is implicitly convertible to T*
+        //      and D = default_delete<T>
         template<typename U>
         unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) :
-                ptr(u.release()), del()
+        ptr(u.release()), del()
         {
         }
 #endif
@@ -252,6 +270,9 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
         {
             if(this != &r)
@@ -263,6 +284,9 @@ namespace boost
             return *this;
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<class U, class E>
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
         {
@@ -271,6 +295,9 @@ namespace boost
             return *this;
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<class U, class E>
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) r)
         {
@@ -302,6 +329,9 @@ namespace boost
             return *this;
         }
 
+        // TODO: need to make sure this only participates in overload resolution if:
+        // U is not an array type
+        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<class U, class E>
         unique_ptr& operator=(unique_ptr<U, E> && r)
         {
