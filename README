@@ -1,0 +1,50 @@
+========================
+unique_ptr for C++03
+
+(c) 2013 Andrew Ho
+
+Distributed under the Boost Software License, Version 1.0. (See
+accompanying file LICENSE_1_0.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt)
+========================
+
+This library provides C++11 unique_ptr for C++03 compilers.
+It tries to emulate standard behavior as closely as possible.
+The library will map to standard features when available.
+
+============
+Dependencies (only used when standard features not available)
+============
+
+Boost.Move (maps to standard features when available)
+Boost.TypeTraits
+Boost.Config
+
+============
+Limitations
+============
+
+There are two main limitations I have identified .
+
+- Use of std::nullptr_t/nullptr is only enabled with compiler support.
+- The class is not "move-constructable" from a std::auto_ptr if the compiler does not support true rvalue references.
+	To move an auto_ptr's resource to a unique_ptr in a C++03/C++11 independent manner:
+	my_uptr(my_aptr.release());
+	
+============
+Usage/Building
+============
+
+This is a header-only library.
+
+To use this class, include <boost/unique_ptr.hpp>.
+For std::default_delete emulation you can include <boost/default_delete.hpp> (this is included by default).
+
+All items are found in the boost namespace. See the standard C++11 library documentation for library documentation.
+
+===========
+TODO
+===========
+
+As part of C++14's working draft it has been proposed/accepted to include make_unique.
+There are plans to include this in this library, but it has not been implemented yet.

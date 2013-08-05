@@ -15,7 +15,7 @@
 #include <boost/config.hpp>
 
 #if defined(BOOST_NO_CXX11_SMART_PTR)
-#include <boost/utility/enable_if.hpp>
+//#include <boost/utility/enable_if.hpp>
 #include <boost/type_traits.hpp>
 #else
 #include <memory>
