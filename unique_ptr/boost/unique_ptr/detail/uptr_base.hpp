@@ -1,6 +1,8 @@
 //
 // uptr_base.hpp
 //
+// This file is only included if unique_ptr.hpp can't find std::unique_ptr
+//
 // (c) 2013 Andrew Ho
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
@@ -130,8 +132,8 @@ namespace boost
                 ptr = other.ptr;
                 other.ptr = tmp;
                 // swap deleter
-                deleter_type d = std::forward < deleter_type > (del);
-                del = std::forward < deleter_type > (other.del);
+                deleter_type d = std::forward<deleter_type>(del);
+                del = std::forward<deleter_type>(other.del);
                 other.del = std::forward<deleter_type>(d);
             }
         }
@@ -185,13 +187,23 @@ namespace boost
         {
         }
 
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        unique_ptr(pointer ptr,
+                typename ::boost::conditional<
+                ::boost::is_reference<deleter_type>::value,
+                deleter_type, const deleter_lref>::type d1) :
+        ptr(ptr), del(d1)
+        {
+        }
+#else
         unique_ptr(pointer ptr,
                 typename ::boost::conditional<
                         ::boost::is_reference<deleter_type>::value,
-                        deleter_type, const deleter_lref>::type d1) :
+                        deleter_type, const deleter_type&>::type d1) :
                 ptr(ptr), del(d1)
         {
         }
+#endif
 
         unique_ptr(pointer ptr,
                 BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
@@ -222,19 +234,19 @@ namespace boost
 #else
         unique_ptr(unique_ptr&& u) :
                 ptr(::boost::move(u.release())), del(
-                        std::forward < deleter_type > (u.del))
+                        std::forward<deleter_type>(u.del))
         {
         }
 
         template<typename U, typename E>
         unique_ptr(unique_ptr<U, E> && u) :
-                ptr(::boost::move(u.release())), del(std::forward < E > (u.del))
+                ptr(::boost::move(u.release())), del(std::forward<E>(u.del))
         {
         }
 #endif
 
         template<typename U>
-        unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) : ptr(::boost::move(u.release())), del()
+        unique_ptr(BOOST_RV_REF(std::auto_ptr<U>) u) : ptr(u.release()), del()
         {
         }
 
@@ -292,7 +304,7 @@ namespace boost
             {
                 reset(r.release());
                 // forward deleter
-                del = std::forward < deleter_type > (r.del);
+                del = std::forward<deleter_type>(r.del);
             }
             return *this;
         }
@@ -300,12 +312,9 @@ namespace boost
         template<class U, class E>
         unique_ptr& operator=(unique_ptr<U, E> && r)
         {
-            if (this != &r)
-            {
-                reset(r.release());
-                // forward deleter
-                del = std::forward < E > (r.del);
-            }
+            reset(r.release());
+            // forward deleter
+            del = std::forward<E>(r.del);
             return *this;
         }
 #endif

@@ -1,6 +1,8 @@
 //
 // uptr_arrays.hpp
 //
+// This file is only included if unique_ptr.hpp can't find std::unique_ptr
+//
 // (c) 2013 Andrew Ho
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
@@ -28,14 +30,12 @@ namespace boost
         deleter_type, typename ::boost::remove_reference<deleter_type>::type&>::type deleter_lref;
     public:
 
-        deleter_lref get_deleter(
-                void)
+        deleter_lref get_deleter(void)
         {
             return del;
         }
 
-        const deleter_lref get_deleter(
-                void) const
+        const deleter_lref get_deleter(void) const
         {
             return del;
         }
@@ -63,16 +63,7 @@ namespace boost
             return ptr;
         }
 
-        void reset(void)
-        {
-            if (ptr != BOOST_NULLPTR)
-            {
-                del(ptr);
-                ptr = pointer();
-            }
-        }
-
-        void reset(pointer p)
+        void reset(pointer p = pointer())
         {
             pointer old_ptr = ::boost::move(ptr);
             ptr = p;
@@ -155,10 +146,9 @@ namespace boost
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
         // safe bool idiom
     private:
-        typedef void (unique_ptr::*bool_type)() const;
-        void this_type_does_not_support_comparisons() const
-        {
-        }
+        typedef void (unique_ptr::*bool_type)(void) const;
+        void this_type_does_not_support_comparisons(void) const
+        {}
     public:
         operator bool_type(void) const
         {
@@ -190,13 +180,23 @@ namespace boost
         {
         }
 
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        unique_ptr(pointer ptr,
+                typename ::boost::conditional<
+                ::boost::is_reference<deleter_type>::value,
+                deleter_type, const deleter_lref>::type d1) :
+        ptr(ptr), del(d1)
+        {
+        }
+#else
         unique_ptr(pointer ptr,
                 typename ::boost::conditional<
                         ::boost::is_reference<deleter_type>::value,
-                        deleter_type, const deleter_lref>::type d1) :
+                        deleter_type, const deleter_type&>::type d1) :
                 ptr(ptr), del(d1)
         {
         }
+#endif
 
         unique_ptr(pointer ptr,
                 BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
@@ -305,12 +305,9 @@ namespace boost
         template<class U, class E>
         unique_ptr& operator=(unique_ptr<U, E> && r)
         {
-            if (this != &r)
-            {
-                reset(r.release());
-                // forward deleter
-                del = std::forward<E>(r.del);
-            }
+            reset(r.release());
+            // forward deleter
+            del = std::forward<E>(r.del);
             return *this;
         }
 #endif

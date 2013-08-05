@@ -56,6 +56,77 @@ namespace boost
 
 #if !defined(BOOST_NO_CXX11_NULLPTR)
 // TODO: comparison operators for nullptr_t
+    template<class T, class D>
+    bool operator ==(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return ptr.get() == nullptr;
+    }
+
+    template<class T, class D>
+    bool operator ==(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return nullptr == ptr.get();
+    }
+
+    template<class T, class D>
+    bool operator !=(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return ptr.get() != nullptr;
+    }
+
+    template<class T, class D>
+    bool operator !=(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return nullptr != ptr.get();
+    }
+
+    template<class T, class D>
+    bool operator <(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return ptr.get() < nullptr;
+    }
+
+    template<class T, class D>
+    bool operator <(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return nullptr < ptr.get();
+    }
+
+    template<class T, class D>
+    bool operator <=(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return !(nullptr < ptr.get());
+    }
+
+    template<class T, class D>
+    bool operator <=(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return !(ptr.get() < nullptr);
+    }
+
+    template<class T, class D>
+    bool operator >(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return nullptr < ptr.get();
+    }
+
+    template<class T, class D>
+    bool operator >(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return ptr.get() < nullptr;
+    }
+
+    template<class T, class D>
+    bool operator >=(const ::boost::unique_ptr<T, D>& ptr, std::nullptr_t)
+    {
+        return !(ptr.get() < nullptr);
+    }
+
+    template<class T, class D>
+    bool operator >=(std::nullptr_t, const ::boost::unique_ptr<T, D>& ptr)
+    {
+        return !(nullptr < ptr.get());
+    }
 #endif
 }
 
