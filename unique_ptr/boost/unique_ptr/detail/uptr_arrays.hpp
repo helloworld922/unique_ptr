@@ -128,16 +128,6 @@ namespace boost
         }
 #endif
 
-        typename ::boost::add_lvalue_reference<T>::type operator*(void) const
-        {
-            return *ptr;
-        }
-
-        pointer operator->(void) const
-        {
-            return ptr;
-        }
-
         T& operator[](size_t i) const
         {
             return ptr[i];
