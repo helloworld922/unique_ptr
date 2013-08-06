@@ -43,14 +43,12 @@ namespace boost
             typedef char yes[1];
             typedef char no[2];
             template<typename C>
-            static yes& test(typename C::pointer*);
+            static yes& test(typename C::pointer);
 
-            template<typename >
-            static no& test(int);
+            template<typename>
+            static no& test(...);
         public:
-            static const bool value = sizeof(test<
-                    typename ::boost::remove_reference<Deleter>::type>(0))
-                    == sizeof(yes);
+            static const bool value = sizeof(test<typename ::boost::remove_reference<Deleter>::type>(0)) == sizeof(yes);
         };
 
         template<typename T, typename Deleter, bool use_ptr>
@@ -59,7 +57,7 @@ namespace boost
         template<typename T, typename Deleter>
         struct pointer_type_switch<T, Deleter, true>
         {
-            typedef const typename Deleter::pointer type;
+            typedef typename Deleter::pointer type;
         };
 
         template<typename T, typename Deleter>

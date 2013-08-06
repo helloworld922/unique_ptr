@@ -14,21 +14,24 @@
 
 namespace boost
 {
-    namespace unique_ptr
+    namespace uptr
     {
         namespace test
         {
-            /**
-             * Tests here should compile successfully
-             */
-            void valid_compile_test(void);
+            namespace default_delete
+            {
+                /**
+                 * Tests here should compile successfully
+                 */
+                void valid_compile_test(void);
 
 #if defined(BOOST_UPTR_INVALID_TESTS)
-            /**
-             * Tests here should all fail to compile
-             */
-            void invalid_compile_test(void);
+                /**
+                 * Tests here should all fail to compile
+                 */
+                void invalid_compile_test(void);
 #endif
+            }
         }
     }
 }
