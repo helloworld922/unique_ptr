@@ -252,9 +252,9 @@ namespace boost
         // D is not a reference and E is implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u, typename boost::enable_if_c<
-                boost::is_convertible<pointer, typename boost::unique_ptr<U, E>::pointer>::value
+                boost::is_convertible<typename boost::unique_ptr<U, E>::pointer, pointer>::value
                 && !boost::is_array<U>::value && !boost::is_reference<D>::value
-                && boost::is_convertible<D, E>::value, nat>::type = nat()) : ptr(u.release()), del(boost::move(u.del))
+                && boost::is_convertible<E, D>::value, nat>::type = nat()) : ptr(u.release()), del(boost::move(u.del))
         {
         }
 
@@ -264,7 +264,7 @@ namespace boost
         // D is a reference and E& == D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u, typename boost::enable_if_c<
-                boost::is_convertible<pointer, typename boost::unique_ptr<U, E&>::pointer>::value
+                boost::is_convertible<typename boost::unique_ptr<U, E&>::pointer, pointer>::value
                 && !boost::is_array<U>::value && boost::is_reference<D>::value
                 && boost::is_same<D, E&>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
         {
@@ -276,9 +276,9 @@ namespace boost
         // D is not a reference and E& is implicitly convertible to D
         template<typename U, typename E>
         unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u, typename boost::enable_if_c<
-                boost::is_convertible<pointer, typename boost::unique_ptr<U, E&>::pointer>::value
+                boost::is_convertible<typename boost::unique_ptr<U, E&>::pointer, pointer>::value
                 && !boost::is_array<U>::value && !boost::is_reference<D>::value
-                && boost::is_convertible<D, E&>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
+                && boost::is_convertible<E&, D>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
         {
         }
 
