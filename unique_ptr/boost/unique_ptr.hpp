@@ -14,7 +14,8 @@
 
 #if defined(BOOST_NO_CXX11_SMART_PTR)
 #include <boost/default_delete.hpp>
-#include <boost/move/move.hpp>
+//#include <boost/move/move.hpp>
+#include <boost/static_assert.hpp>
 #include <functional>
 //#include <boost/type_traits.hpp>
 #endif

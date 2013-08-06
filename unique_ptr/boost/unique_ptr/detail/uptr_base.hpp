@@ -14,7 +14,7 @@
 
 namespace boost
 {
-    template<class T, class Deleter = ::boost::default_delete<T> >
+    template<class T, class D = ::boost::default_delete<T> >
     class unique_ptr
     {
         BOOST_MOVABLE_BUT_NOT_COPYABLE (unique_ptr)
@@ -22,15 +22,14 @@ namespace boost
 
     public:
         typedef T element_type;
-        typedef Deleter deleter_type;
+        typedef D deleter_type;
         typedef typename ::boost::detail::pointer_type_switch<T, deleter_type,
                 ::boost::detail::has_pointer_type<deleter_type>::value>::type pointer;
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
     private:
         typedef typename ::boost::conditional< ::boost::is_reference<deleter_type>::value,
-        deleter_type, typename ::boost::remove_reference<deleter_type>::type&>::type deleter_lref;
-
+        deleter_type, typename ::boost::add_reference<deleter_type>::type>::type deleter_lref;
 
     public:
 
@@ -168,25 +167,40 @@ namespace boost
         unique_ptr(void) :
                 ptr(), del()
         {
+            // if D is a reference or pointer type this is ill-formed
+            BOOST_STATIC_ASSERT_MSG(
+                    !(::boost::is_reference<D>::value
+                            || ::boost::is_pointer<D>::value),
+                    "Cannot default initialize deleter if it is a pointer or reference type.");
         }
 
 #if !defined(BOOST_NO_CXX11_NULLPTR)
         unique_ptr(std::nullptr_t) :
-                ::boost::unique_ptr<T, Deleter>()
+                ::boost::unique_ptr<T, D>()
         {
+            // if D is a reference or pointer type this is ill-formed
+            BOOST_STATIC_ASSERT_MSG(
+                    !(::boost::is_reference<D>::value
+                            || ::boost::is_pointer<D>::value),
+                    "Cannot default initialize deleter if it is a pointer or reference type.");
         }
 #endif
 
         explicit unique_ptr(pointer ptr) :
                 ptr(ptr), del()
         {
+            // if D is a reference or pointer type this is ill-formed
+            BOOST_STATIC_ASSERT_MSG(
+                    !(::boost::is_reference<D>::value
+                            || ::boost::is_pointer<D>::value),
+                    "Cannot default initialize deleter if it is a pointer or reference type.");
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         unique_ptr(pointer ptr,
                 typename ::boost::conditional<
-                ::boost::is_reference<deleter_type>::value,
-                deleter_type, const deleter_lref>::type d1) :
+                ::boost::is_reference<D>::value,
+                D, const typename ::boost::remove_reference<D>::type& >::type d1) :
         ptr(ptr), del(d1)
         {
         }
@@ -198,13 +212,15 @@ namespace boost
                 ptr(ptr), del(d1)
         {
         }
-#endif
 
+
+#endif
         unique_ptr(pointer ptr,
-                BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type)d2) :
+                BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type) d2) :
         ptr(ptr), del(::boost::move(d2))
         {
         }
+
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // TODO: why is this overload even needed?
@@ -212,29 +228,70 @@ namespace boost
 //        {
 //        }
 
-// TODO: need to make sure this only participates in overload resolution if:
-// U is not an array type
-// if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
+#if defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+    private:
+        struct nat
+        {};
+    public:
+        // only participates in overload resolution if:
+        // unique_ptr<U, E>::pointer can be implicitly casted to pointer
+        // U is not an array type
+        // D is a reference and E == D
+        // err... can never happen because this requires E is not reference
+//        template<typename U, typename E>
+//        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u, typename boost::enable_if_c<
+//                boost::is_convertible<pointer, typename boost::unique_ptr<U, E>::pointer>::value
+//                && !boost::is_array<U>::value && boost::is_reference<D>::value
+//                && boost::is_same<D, E>::value, nat>::type = nat()) : ptr(u.release()), del(boost::move(u.del))
+//        {
+//        }
+
+        // only participates in overload resolution if:
+        // unique_ptr<U, E>::pointer can be implicitly casted to pointer
+        // U is not an array type
+        // D is not a reference and E is implicitly convertible to D
         template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u) : ptr(u.release()), del(boost::move(u.del))
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) u, typename boost::enable_if_c<
+                boost::is_convertible<pointer, typename boost::unique_ptr<U, E>::pointer>::value
+                && !boost::is_array<U>::value && !boost::is_reference<D>::value
+                && boost::is_convertible<D, E>::value, nat>::type = nat()) : ptr(u.release()), del(boost::move(u.del))
+        {
+        }
+
+        // only participates in overload resolution if:
+        // unique_ptr<U, E&>::pointer can be implicitly casted to pointer
+        // U is not an array type
+        // D is a reference and E& == D
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u, typename boost::enable_if_c<
+                boost::is_convertible<pointer, typename boost::unique_ptr<U, E&>::pointer>::value
+                && !boost::is_array<U>::value && boost::is_reference<D>::value
+                && boost::is_same<D, E&>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
+        {
+        }
+
+        // only participates in overload resolution if:
+        // unique_ptr<U, E&>::pointer can be implicitly casted to pointer
+        // U is not an array type
+        // D is not a reference and E& is implicitly convertible to D
+        template<typename U, typename E>
+        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u, typename boost::enable_if_c<
+                boost::is_convertible<pointer, typename boost::unique_ptr<U, E&>::pointer>::value
+                && !boost::is_array<U>::value && !boost::is_reference<D>::value
+                && boost::is_convertible<D, E&>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
         {
         }
 
         // TODO: need to make sure this only participates in overload resolution if:
+        // unique_ptr<U, E>::pointer can be implicitly casted to pointer
         // U is not an array type
         // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
-        template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) u) : ptr(u.release()), del(u.del)
-        {
-        }
-
-        // TODO: need to make sure this only participates in overload resolution if:
-        // U is not an array type
-        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
-        template<typename U, typename E>
-        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
-        {
-        }
+//        template<typename U, typename E>
+//        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
+//        {
+//        }
+#else
+#endif // BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS
 #else
         unique_ptr(unique_ptr&& u) :
                 ptr(::boost::move(u.release())), del(
@@ -259,8 +316,7 @@ namespace boost
         ptr(u.release()), del()
         {
         }
-#endif
-
+#endif // BOOST_NO_CXX11_RVALUE_REFERENCES
         ~unique_ptr(void)
         {
             if (ptr != BOOST_NULLPTR)
