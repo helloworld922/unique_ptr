@@ -147,6 +147,10 @@ namespace boost
 //            return ptr;
 //        }
         // TODO: operator[]
+        T& operator[](size_t i) const
+        {
+            return ptr[i];
+        }
 
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
         // safe bool idiom
