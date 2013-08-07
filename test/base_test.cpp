@@ -23,6 +23,8 @@ namespace boost
                 class bclass
                 {
                 public:
+                    int val;
+
                     virtual ~bclass()
                     {}
                 };
@@ -186,6 +188,14 @@ namespace boost
                                 ptr3 = boost::move(ptr2);
                             }
                         }
+                    }
+                    // observers
+                    {
+                        const boost::unique_ptr<bclass> ptr1(new bclass);
+                        bclass tmp = *ptr1;
+                        int x = ptr1->val;
+                        bclass* g = ptr1.get();
+                        ptr1.get_deleter();
                     }
                 }
 

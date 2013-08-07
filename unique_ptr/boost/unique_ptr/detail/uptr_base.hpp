@@ -27,6 +27,7 @@ namespace boost
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
     private:
         typedef typename remove_reference<D>::type& deleter_lref;
+        typedef typename add_const<typename remove_reference<D>::type>::type& const_deleter_lref;
 
     public:
         // No reference collapse rules in C++03, manually add it
@@ -37,7 +38,7 @@ namespace boost
         }
 
         // No reference collapse rules in C++03, manually add it
-        const deleter_lref get_deleter(
+        const_deleter_lref get_deleter(
                 void) const
         {
             return del;
@@ -287,7 +288,7 @@ namespace boost
         {
         }
 
-        // TODO: need to make sure this only participates in overload resolution if:
+        // Only participates in overload resolution if:
         // U is not an array type
         // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
         template<typename U, typename E>
@@ -379,7 +380,7 @@ namespace boost
             return *this;
         }
 
-        // TODO: Only participates in overload resolution iff:
+        // Only participates in overload resolution iff:
         // U is not an array type
         // unique_ptr<U, E&>::pointer is implicitly convertible to pointer
         template<class U, class E>

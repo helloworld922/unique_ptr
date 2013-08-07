@@ -1,6 +1,10 @@
 //
 // unique_ptr.hpp
 //
+// Special thanks to Howard Hinnant's unique_ptr emulation (http://home.roadrunner.com/~hinnant/unique_ptr03.html)
+//
+// There are some implementation details based off of his implementation.
+//
 // (c) 2013 Andrew Ho
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
