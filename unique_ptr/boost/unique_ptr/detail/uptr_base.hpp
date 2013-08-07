@@ -80,34 +80,45 @@ namespace boost
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
     private:
+        // E == D, E is not a ptr
+        // safe to move-swap
         template<typename E>
         void swap_impl(unique_ptr<T, E>& other)
         {
             if (this != &other)
             {
+                // TODO: should really use std::swap
                 // swap managed objects
-                pointer tmp = ptr;
-                ptr = other.ptr;
-                other.ptr = tmp;
+                std::swap(ptr, other.ptr);
+                //pointer tmp = ptr;
+                //ptr = other.ptr;
+                //other.ptr = tmp;
                 // swap deleter
-                deleter_type d = ::boost::move(del);
-                del = boost::move(other.del);
-                other.del = ::boost::move(d);
+                std::swap(boost::move(del), boost::move(other.del));
+                //deleter_type d = ::boost::move(del);
+                //del = boost::move(other.del);
+                //other.del = ::boost::move(d);
             }
         }
+        // E == D
+        // E is a ref
+        // swap by copy
         template<typename E>
         void swap_impl(unique_ptr<T, E&>& other)
         {
             if (this != &other)
             {
+                // TODO: should really use std::swap
                 // swap managed objects
-                pointer tmp = ptr;
-                ptr = other.ptr;
-                other.ptr = tmp;
+                std::swap(ptr, other.ptr);
+                //pointer tmp = ptr;
+                //ptr = other.ptr;
+                //other.ptr = tmp;
                 // swap deleter
-                deleter_type d = del;
-                del = other.del;
-                other.del = d;
+                std::swap(ptr, other.ptr);
+                //deleter_type d = del;
+                //del = other.del;
+                //other.del = d;
             }
         }
     public:
@@ -121,14 +132,17 @@ namespace boost
         {
             if (this != &other)
             {
+                // TODO: should really use std::swap
                 // swap managed objects
-                pointer tmp = ptr;
-                ptr = other.ptr;
-                other.ptr = tmp;
+                std::swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
+                //pointer tmp = ptr;
+                //ptr = other.ptr;
+                //other.ptr = tmp;
                 // swap deleter
-                deleter_type d = std::forward < deleter_type > (del);
-                del = std::forward < deleter_type > (other.del);
-                other.del = std::forward < deleter_type > (d);
+                std::swap(std::forward<pointer>(del), std::forward<pointer>(other.del));
+                //deleter_type d = std::forward < deleter_type > (del);
+                //del = std::forward < deleter_type > (other.del);
+                //other.del = std::forward < deleter_type > (d);
             }
         }
 #endif
@@ -216,9 +230,10 @@ namespace boost
 
 #endif
         unique_ptr(pointer ptr,
-                BOOST_RV_REF(typename ::boost::remove_reference<deleter_type>::type) d2) :
+                BOOST_RV_REF(typename ::boost::remove_reference<D>::type) d2) :
         ptr(ptr), del(::boost::move(d2))
         {
+            BOOST_STATIC_ASSERT_MSG( !::boost::is_reference<D>::value, "cannot instantiate D& with rvalue deleter" );
         }
 
 

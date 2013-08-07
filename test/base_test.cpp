@@ -98,12 +98,10 @@ namespace boost
                         boost::default_delete<int> del;
                         // del should be deleted last
                         {
-                            boost::unique_ptr<int, boost::default_delete<int>&> ptr1(
+                            boost::unique_ptr<int, boost::default_delete<int> > ptr1(
                                     new int, boost::move(del));
                             boost::unique_ptr<int,
-                                    const boost::default_delete<int>&> ptr2(
-                                    new int, boost::move(del));
-                            boost::unique_ptr<int, boost::default_delete<int> > ptr3(
+                                    const boost::default_delete<int> > ptr2(
                                     new int, boost::move(del));
                         }
                     }
@@ -197,16 +195,67 @@ namespace boost
                  */
                 void invalid_compile_test(void)
                 {
+#if false
                     // 20.7.1.2 D shall not be an rvalue reference
                     boost::default_delete<int> del;
                     {
-                        //boost::unique_ptr<int, BOOST_RV_REF(boost::default_delete<int>) > ptr1(new int, boost::move(del));
+                        boost::unique_ptr<int, BOOST_RV_REF(boost::default_delete<int>) > ptr1(new int, boost::move(del));
                     }
                     // cannot implicitly construct unique_ptr from type pointer
+                    {
+                        boost::unique_ptr<int> ptr1 = new int;
+                    }
                     // 20.7.1.2.1 if D is a reference or pointer type, the user must supply a deleter
+                    {
+                        boost::unique_ptr< int, boost::default_delete<int>& > ptr1;
+                        boost::unique_ptr< int, boost::default_delete<int>& > ptr2(new int);
+                        boost::unique_ptr<int, void(*)(int*)> ptr3;
+                        boost::unique_ptr<int, void(*)(int*)> ptr4(new int);
+                    }
                     // 20.7.1.2.1 If D is a reference type, should not allow unique_ptr(pointer, D&&)
+                    {
+                        boost::default_delete<int> del;
+                        {
+                            boost::unique_ptr<int, boost::default_delete<int>& > ptr1(new int, boost::default_delete<int>());
+                            boost::unique_ptr<int, boost::default_delete<int>& > ptr2(new int, boost::move(del));
+                        }
+                    }
                     // 20.7.1.2.1 cannot construct a base unique_ptr from array unique_ptr
-                    // 20.7.1.2.1 If D is a reference
+                    {
+                        boost::unique_ptr<int[]> ptr1;
+                        boost::unique_ptr<int> ptr2(boost::move(ptr1));
+                    }
+                    // 20.7.1.2.1 If D is a reference, move constructing from unique_ptr<U, E>, must have E == D
+                    {
+                        boost::default_delete<cclass> del;
+                        {
+                            boost::unique_ptr<cclass, boost::default_delete<cclass> > ptr1(new cclass, del);
+                            boost::unique_ptr<cclass, boost::default_delete<cclass>& > ptr2(new cclass, del);
+                            boost::unique_ptr<cclass, boost::default_delete<bclass>& > ptr3(boost::move(ptr1));
+                            boost::unique_ptr<cclass, boost::default_delete<bclass>& > ptr4(boost::move(ptr2));
+                        }
+                    }
+                    // 20.7.1.2.1 If D is not a reference, move construction from unique_ptr<U, E> must have E convertible to D
+                    {
+                        boost::default_delete<bclass> del;
+                        {
+                            boost::unique_ptr<cclass, boost::default_delete<bclass>& > ptr1(new cclass, del);
+                            boost::unique_ptr<cclass, boost::default_delete<bclass> > ptr2(new cclass);
+                            boost::unique_ptr<cclass, boost::default_delete<cclass> > ptr3(boost::move(ptr1));
+                            boost::unique_ptr<cclass, boost::default_delete<cclass> > ptr4(boost::move(ptr2));
+                        }
+                    }
+                    // move assign from unique_ptr<U, E> to unique_ptr<T, D>
+                    // 20.7.1.2.3-5 unique_ptr<U,E>::pointer must be implicitly convertible to pointer
+                    //      and U is not an array type
+                    {
+                        boost::unique_ptr<cclass, boost::default_delete<bclass> > ptr1;
+                        boost::unique_ptr<bclass> ptr2;
+                        boost::unique_ptr<bclass[]> ptr3;
+                        ptr1 = boost::move(ptr2);
+                        ptr2 = boost::move(ptr3);
+                    }
+#endif // temporary: hides some expected compile errors
                 }
 #endif
             }
