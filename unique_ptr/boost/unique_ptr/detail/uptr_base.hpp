@@ -344,9 +344,10 @@ namespace boost
         // U is not an array type
         // unique_ptr<U, E>::pointer is implicitly convertible to pointer
         template<class U, class E>
-        unique_ptr& operator=(typename boost::enable_if_c<
-                !boost::is_array<U>::value && boost::is_convertible< typename unique_ptr<U, E>::pointer, pointer >::value,
-                BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) >::type r)
+        typename boost::enable_if_c<
+            !boost::is_array<U>::value &&
+            boost::is_convertible< typename unique_ptr<U, E>::pointer, pointer >::value, unique_ptr&>::type
+        operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
         {
             reset(r.release());
             del = boost::move(r.del);
@@ -357,9 +358,10 @@ namespace boost
         // U is not an array type
         // unique_ptr<U, E&>::pointer is implicitly convertible to pointer
         template<class U, class E>
-        unique_ptr& operator=(typename boost::enable_if_c<
-                !boost::is_array<U>::value && boost::is_convertible< typename unique_ptr<U, E&>::pointer, pointer >::value,
-                BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) >::type r)
+        typename boost::enable_if_c<
+            !boost::is_array<U>::value &&
+            boost::is_convertible< typename unique_ptr<U, E&>::pointer, pointer >::value, unique_ptr&>::type
+        operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) r)
         {
             reset(r.release());
             del = r.del;

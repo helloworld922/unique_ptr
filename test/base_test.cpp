@@ -152,8 +152,8 @@ namespace boost
                         // move assign from unique_ptr<T,D> to unique_ptr<T,D>
                         // 20.7.1.2.3-1 D is not a reference type, D must be MoveAssignable
                         {
-                            unique_ptr<int> ptr1;
-                            unique_ptr<int> ptr2;
+                            boost::unique_ptr<int> ptr1;
+                            boost::unique_ptr<int> ptr2;
                             ptr1 = boost::move(ptr2);
                         }
                         // move assign from unique_ptr<T, D&> to unique_ptr<T, D&>
@@ -161,8 +161,8 @@ namespace boost
                         {
                             boost::default_delete<int> del;
                             {
-                                unique_ptr<int, boost::default_delete<int>& > ptr1(new int, del);
-                                unique_ptr<int, boost::default_delete<int>& > ptr2(new int, del);
+                                boost::unique_ptr<int, boost::default_delete<int>& > ptr1(new int, del);
+                                boost::unique_ptr<int, boost::default_delete<int>& > ptr2(new int, del);
                                 ptr2 =boost::move(ptr1);
                             }
                         }
@@ -171,6 +171,18 @@ namespace boost
                         //      and U is not an array type
                         // calls reset(u.release())
                         // assign del = std::forward<D>(u.del)
+                        {
+                            boost::default_delete<bclass> del_b;
+                            boost::default_delete<cclass> del_c;
+                            {
+                                boost::unique_ptr<bclass> ptr1;
+                                boost::unique_ptr<cclass> ptr2;
+                                boost::unique_ptr<cclass, boost::default_delete<cclass>& > ptr3(NULL, del_c);
+                                ptr1 = boost::move(ptr2);
+                                ptr1 = boost::move(ptr3);
+                                ptr3 = boost::move(ptr2);
+                            }
+                        }
                     }
                 }
 
