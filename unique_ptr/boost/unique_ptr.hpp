@@ -12,8 +12,9 @@
 
 #include <boost/config.hpp>
 
-#if defined(BOOST_NO_CXX11_SMART_PTR)
 #include <boost/default_delete.hpp>
+
+#if defined(BOOST_NO_CXX11_SMART_PTR)
 //#include <boost/move/move.hpp>
 #include <boost/static_assert.hpp>
 #include <functional>
