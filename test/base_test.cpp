@@ -192,10 +192,24 @@ namespace boost
                     // observers
                     {
                         const boost::unique_ptr<bclass> ptr1(new bclass);
+                        boost::unique_ptr<bclass> ptr2(new bclass);
+                        // operator*
                         bclass tmp = *ptr1;
+                        // operator->
                         int x = ptr1->val;
+                        // get()
                         bclass* g = ptr1.get();
+                        // get_deleter() const
                         ptr1.get_deleter();
+                        ptr2.get_deleter();
+                        // operator bool checks
+                        // limitation: C++03 uses a safe-bool idiom so it doesn't behave exactly like a bool
+                        if(!ptr1)
+                        {
+                        }
+                        if(!ptr2)
+                        {
+                        }
                     }
                 }
 

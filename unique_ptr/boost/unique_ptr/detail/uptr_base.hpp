@@ -150,8 +150,8 @@ namespace boost
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
         // safe bool idiom
     private:
-        typedef void (unique_ptr::*bool_type)() const;
-        void this_type_does_not_support_comparisons() const
+        typedef void (*bool_type)();
+        static void this_type_does_not_support_comparisons()
         {
         }
     public:
