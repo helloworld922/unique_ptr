@@ -53,8 +53,8 @@ namespace boost
          * Technically allows an extra char
          */
         template<class U>
-        default_delete(const default_delete<U>& d, typename ::boost::enable_if_c<
-        ::boost::is_convertible<U*, T*>::value, nat>::type = nat())
+        default_delete(const default_delete<U>& d, typename enable_if_c<
+                is_convertible<U*, T*>::value, nat>::type = nat())
         {
             //test_exists<>();
         }
@@ -139,8 +139,8 @@ namespace boost
             }
         };
 #else
-                using std::default_delete;
+        using std::default_delete;
 #endif // BOOST_NO_CXX11_SMART_PTR
-            }
+}
 
 #endif // BOOST_DEFAULT_DELETE_HPP
