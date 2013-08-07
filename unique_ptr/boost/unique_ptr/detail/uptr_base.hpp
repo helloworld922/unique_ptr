@@ -368,17 +368,6 @@ namespace boost
             return *this;
         }
 
-        // err... this really shouldn't be legal?
-//        template<class U, class E>
-//        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) r)
-//        {
-//            if(this != &r)
-//            {
-//                reset(r.release());
-//                del = r.del;
-//            }
-//            return *this;
-//        }
 #else
         unique_ptr& operator=(unique_ptr&& r)
         {
@@ -418,6 +407,12 @@ namespace boost
 
         template<typename U, typename E>
         friend class unique_ptr;
+    };
+
+    template<typename T, typename D>
+    class unique_ptr< T, BOOST_RV_REF(D) >
+    {
+        BOOST_STATIC_ASSERT_MSG(!::boost::is_same<T BOOST_COMMA T>::value, "cannot instantiate a unique_ptr with rvalue ref D");
     };
 }
 

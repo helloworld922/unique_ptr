@@ -50,6 +50,8 @@ namespace boost
                         const boost::unique_ptr<int> uptr1;
                         const boost::unique_ptr<std::fstream, stream_closer> uptr2;
                     }
+                    // should be able to construct unique_ptr from nullptr
+                    // limitation of C++03, there's no nullptr or nullptr_t
                     // 20.7.1.2 const deleter
                     {
                         boost::default_delete<int> del;
@@ -156,6 +158,9 @@ namespace boost
                             boost::unique_ptr<int> ptr2;
                             ptr1 = boost::move(ptr2);
                         }
+                        // should be assignable to nullptr
+                        // C++03 limitation, there's no nullptr/nullptr_t type
+
                         // move assign from unique_ptr<T, D&> to unique_ptr<T, D&>
                         // 20.7.1.2.3-1 D is a reference type, remove_reference<D>::type should be CopyAssignable
                         {
@@ -193,6 +198,10 @@ namespace boost
                 void invalid_compile_test(void)
                 {
                     // 20.7.1.2 D shall not be an rvalue reference
+                    boost::default_delete<int> del;
+                    {
+                        //boost::unique_ptr<int, BOOST_RV_REF(boost::default_delete<int>) > ptr1(new int, boost::move(del));
+                    }
                     // cannot implicitly construct unique_ptr from type pointer
                     // 20.7.1.2.1 if D is a reference or pointer type, the user must supply a deleter
                     // 20.7.1.2.1 If D is a reference type, should not allow unique_ptr(pointer, D&&)
