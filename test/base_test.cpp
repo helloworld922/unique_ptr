@@ -211,6 +211,19 @@ namespace boost
                         {
                         }
                     }
+                    // modifiers
+                    {
+                        // swap
+                        {
+                            boost::unique_ptr<int> ptr1(new int);
+                            boost::unique_ptr<int> ptr2(new int);
+                            ptr1.swap(ptr2);
+                        }
+                        // reset
+                        {
+
+                        }
+                    }
                 }
 
 #if defined(BOOST_UPTR_INVALID_TESTS)

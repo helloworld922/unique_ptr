@@ -77,49 +77,52 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-    private:
-        // TODO: probably should have special overloads if U == T is not a ref
-        // E == D, E is not a ref
-        // safe to move-swap
-        template<typename E>
-        void swap_impl(unique_ptr<T, E>& other)
-        {
-            // should really use std::swap
-            // swap managed objects
-            std::swap(boost::move(ptr), boost::move(other.ptr));
-            //pointer tmp = ptr;
-            //ptr = other.ptr;
-            //other.ptr = tmp;
-            // swap deleter
-            std::swap(boost::move(del), boost::move(other.del));
-            //deleter_type d = ::boost::move(del);
-            //del = boost::move(other.del);
-            //other.del = ::boost::move(d);
-        }
-        // E == D
-        // E is a ref
-        // swap by copy
-        template<typename E>
-        void swap_impl(unique_ptr<T, E&>& other)
-        {
-            // should really use std::swap
-            // swap managed objects
-            std::swap(boost::move(ptr), boost::move(other.ptr));
-            //pointer tmp = ptr;
-            //ptr = other.ptr;
-            //other.ptr = tmp;
-            // swap deleter
-            std::swap(ptr, other.ptr);
-            //deleter_type d = del;
-            //del = other.del;
-            //other.del = d;
-        }
-    public:
+//    private:
+//        // TODO: probably should have special overloads if U == T is not a ref
+//        // E == D, E is not a ref
+//        // safe to move-swap
+//        template<typename E>
+//        void swap_impl(unique_ptr<T, E>& other)
+//        {
+//            // should really use std::swap
+//            // swap managed objects
+//            std::swap(boost::move(ptr), boost::move(other.ptr));
+//            //pointer tmp = ptr;
+//            //ptr = other.ptr;
+//            //other.ptr = tmp;
+//            // swap deleter
+//            std::swap(boost::move(del), boost::move(other.del));
+//            //deleter_type d = ::boost::move(del);
+//            //del = boost::move(other.del);
+//            //other.del = ::boost::move(d);
+//        }
+//        // E == D
+//        // E is a ref
+//        // swap by copy
+//        template<typename E>
+//        void swap_impl(unique_ptr<T, E&>& other)
+//        {
+//            // should really use std::swap
+//            // swap managed objects
+//            std::swap(boost::move(ptr), boost::move(other.ptr));
+//            //pointer tmp = ptr;
+//            //ptr = other.ptr;
+//            //other.ptr = tmp;
+//            // swap deleter
+//            std::swap(ptr, other.ptr);
+//            //deleter_type d = del;
+//            //del = other.del;
+//            //other.del = d;
+//        }
+//    public:
         void swap(unique_ptr& other)
         {
             if(this != &other)
             {
-                swap_impl(other);
+                using std::swap;
+                swap(ptr, other.ptr);
+                swap(del, other.del);
+                //swap_impl(other);
             }
         }
 
@@ -128,10 +131,11 @@ namespace boost
         {
             if (this != &other)
             {
+                using std::swap;
                 // swap managed objects
-                std::swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
+                swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
                 // swap deleter
-                std::swap(std::forward<D>(del), std::forward<D>(other.del));
+                swap(std::forward<D>(del), std::forward<D>(other.del));
             }
         }
 #endif
