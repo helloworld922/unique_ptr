@@ -228,7 +228,7 @@ namespace boost
 //        {
 //        }
 
-#if defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+//#if defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
     private:
         struct nat
         {};
@@ -281,17 +281,9 @@ namespace boost
                 && boost::is_convertible<E&, D>::value, nat>::type = nat()) : ptr(u.release()), del(u.del)
         {
         }
-
-        // TODO: need to make sure this only participates in overload resolution if:
-        // unique_ptr<U, E>::pointer can be implicitly casted to pointer
-        // U is not an array type
-        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
-//        template<typename U, typename E>
-//        unique_ptr(BOOST_RV_REF(unique_ptr<U BOOST_COMMA const E&>) u) : ptr(u.release()), del(u.del)
-//        {
-//        }
-#else
-#endif // BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS
+//#else
+//        // TODO: specialization if function template default args support?
+//#endif // BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS
 #else
         unique_ptr(unique_ptr&& u) :
                 ptr(::boost::move(u.release())), del(
@@ -326,36 +318,48 @@ namespace boost
         }
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        // TODO: need to make sure this only participates in overload resolution if:
-        // U is not an array type
-        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
+        // if D is a reference type, copy assign
+        // otherwise, move-assign
         unique_ptr& operator=(BOOST_RV_REF(unique_ptr) r)
         {
             if(this != &r)
             {
                 reset(r.release());
-                // TODO: why can't this be move?
-                del = ::boost::move(r.del);
+                // TODO: better way to forward?
+                if(boost::is_reference<D>::value)
+                {
+                    // copy assign
+                    del = r.del;
+                }
+                else
+                {
+                    // move assign
+                    del = boost::move(r.del);
+                }
             }
             return *this;
         }
 
-        // TODO: need to make sure this only participates in overload resolution if:
+        // only participates in overload resolution iff:
         // U is not an array type
-        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
+        // unique_ptr<U, E>::pointer is implicitly convertible to pointer
         template<class U, class E>
-        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) r)
+        unique_ptr& operator=(typename boost::enable_if_c<
+                !boost::is_array<U>::value && boost::is_convertible< typename unique_ptr<U, E>::pointer, pointer >::value,
+                BOOST_RV_REF(unique_ptr<U BOOST_COMMA E>) >::type r)
         {
             reset(r.release());
             del = boost::move(r.del);
             return *this;
         }
 
-        // TODO: need to make sure this only participates in overload resolution if:
+        // Only participates in overload resolution iff:
         // U is not an array type
-        // if D is a reference type, then E == D. Otherwise, E must be implicitly convertible to D
+        // unique_ptr<U, E&>::pointer is implicitly convertible to pointer
         template<class U, class E>
-        unique_ptr& operator=(BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) r)
+        unique_ptr& operator=(typename boost::enable_if_c<
+                !boost::is_array<U>::value && boost::is_convertible< typename unique_ptr<U, E&>::pointer, pointer >::value,
+                BOOST_RV_REF(unique_ptr<U BOOST_COMMA E&>) >::type r)
         {
             reset(r.release());
             del = r.del;

@@ -119,9 +119,58 @@ namespace boost
                     // 20.7.1.2.1 move a unique_ptr<U,E> to a unique_ptr<T,D>
                     {
                         // 20.7.1.2.1-19 should only participate if unique_ptr<U, E>::pointer is implicitly convertible to pointer
-                        boost::unique_ptr<cclass> ptr1;
+                        boost::unique_ptr<cclass, boost::default_delete<bclass> > ptr1;
 
-                        boost::unique_ptr<bclass> ptr2(boost::move(ptr1));
+                        boost::unique_ptr<bclass, boost::default_delete<bclass> > ptr2(boost::move(ptr1));
+                    }
+                    {
+                        boost::default_delete<bclass> del1;
+                        {
+                            // 20.7.1.2.1-19 If D is not a reference, E must be implicitly convertible to D
+                            boost::unique_ptr<cclass, boost::default_delete<cclass> > ptr1;
+                            boost::unique_ptr<bclass, boost::default_delete<bclass> > ptr2(boost::move(ptr1));
+                            // 20.7.1.2.1-19 If D is not a reference, E& must be implicitly convertible to D
+                            boost::unique_ptr<cclass, boost::default_delete<bclass>& > ptr3(new cclass, del1);
+                            boost::unique_ptr<bclass, boost::default_delete<bclass> > ptr4(boost::move(ptr3));
+                            // 20.7.1.2.1-19 if D is a reference type, E == D
+                            boost::unique_ptr<bclass, boost::default_delete<bclass>& > ptr5(boost::move(ptr3));
+                        }
+                    }
+                    // 20.7.1.2.1 unique_ptr<T,D> should be move-constructable from std::auto_ptr<U>. U* must be implicitly convertible to T*
+                    // and D must be default_delete<T>
+                    {
+                        // limitation of C++03 move emulation: std::auto_ptr is not marked movable by Boost.Move
+                        // this will fail to compile
+                        // work-around: user must manually release from the aptr
+                        // uptr(aptr.release());
+                        //std::auto_ptr<int> aptr;
+                        //boost::unique_ptr<int> uptr(boost::move(aptr));
+                    }
+                    // 20.7.1.2.2 destructor ~unique_ptr. Already tested above
+                    // 20.7.1.2.3 assignment operators
+                    {
+                        // move assign from unique_ptr<T,D> to unique_ptr<T,D>
+                        // 20.7.1.2.3-1 D is not a reference type, D must be MoveAssignable
+                        {
+                            unique_ptr<int> ptr1;
+                            unique_ptr<int> ptr2;
+                            ptr1 = boost::move(ptr2);
+                        }
+                        // move assign from unique_ptr<T, D&> to unique_ptr<T, D&>
+                        // 20.7.1.2.3-1 D is a reference type, remove_reference<D>::type should be CopyAssignable
+                        {
+                            boost::default_delete<int> del;
+                            {
+                                unique_ptr<int, boost::default_delete<int>& > ptr1(new int, del);
+                                unique_ptr<int, boost::default_delete<int>& > ptr2(new int, del);
+                                ptr2 =boost::move(ptr1);
+                            }
+                        }
+                        // move assign from unique_ptr<U, E> to unique_ptr<T, D>
+                        // 20.7.1.2.3-5 unique_ptr<U,E>::pointer must be implicitly convertible to pointer
+                        //      and U is not an array type
+                        // calls reset(u.release())
+                        // assign del = std::forward<D>(u.del)
                     }
                 }
 
