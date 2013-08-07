@@ -157,7 +157,7 @@ namespace boost
         operator bool_type(void) const
         {
             return (ptr != BOOST_NULLPTR) ?
-            (&unique_ptr::this_type_does_not_support_comparisons) :
+            (&this_type_does_not_support_comparisons) :
             BOOST_NULLPTR;
         }
 #else
