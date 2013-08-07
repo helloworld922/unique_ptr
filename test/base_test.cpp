@@ -221,7 +221,10 @@ namespace boost
                         }
                         // reset
                         {
-
+                            boost::unique_ptr<int> ptr1(new int);
+                            // limitation of C++03: there's no nullptr/nullptr_t
+                            ptr1.reset(NULL);
+                            ptr1.reset(new int);
                         }
                     }
                 }
