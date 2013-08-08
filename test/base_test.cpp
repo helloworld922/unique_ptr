@@ -218,6 +218,8 @@ namespace boost
                             boost::unique_ptr<int> ptr1(new int);
                             boost::unique_ptr<int> ptr2(new int);
                             ptr1.swap(ptr2);
+                            //using std::swap;
+                            std::swap(ptr1, ptr2);
                         }
                         // reset
                         {

@@ -421,9 +421,19 @@ namespace boost
     {
         BOOST_STATIC_ASSERT_MSG(!is_same<T BOOST_COMMA T>::value, "cannot instantiate a unique_ptr with rvalue ref D");
     };
-
-    // TODO: std::swap specialization
-    // TODO: std::hash specialization
 }
+
+// TODO: swap specialization
+#if defined(BOOST_NO_CXX11_SMART_PTR)
+namespace std
+{
+    template<typename T, typename D>
+    void swap(boost::unique_ptr<T, D>& val1, boost::unique_ptr<T, D>& val2)
+    {
+        val1.swap(val2);
+    }
+}
+#endif
+// TODO: std::hash specialization? There really isn't a std::hash implementation in C++03...
 
 #endif // BOOST_UPTR_BASE_HPP
