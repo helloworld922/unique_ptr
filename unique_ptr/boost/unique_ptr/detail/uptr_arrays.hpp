@@ -27,6 +27,7 @@ namespace boost
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
     private:
         typedef typename remove_reference<D>::type& deleter_lref;
+        typedef const typename remove_reference<D>::type& const_deleter_lref;
 
     public:
         // No reference collapse rules in C++03, manually add it
@@ -37,7 +38,7 @@ namespace boost
         }
 
         // No reference collapse rules in C++03, manually add it
-        const deleter_lref get_deleter(
+        const_deleter_lref get_deleter(
                 void) const
         {
             return del;
@@ -159,10 +160,9 @@ namespace boost
 #if defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
         // safe bool idiom
     private:
-        typedef void (unique_ptr::*bool_type)() const;
-        void this_type_does_not_support_comparisons() const
-        {
-        }
+        typedef void (*bool_type)();
+        static void this_type_does_not_support_comparisons()
+        {}
     public:
         operator bool_type(void) const
         {

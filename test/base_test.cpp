@@ -76,7 +76,7 @@ namespace boost
                     }
                     // 20.7.1.2-3 if D::pointer is a type, should use D::pointer instead of T* as pointer type
                     {
-                        boost::unique_ptr<int, fake_int> uptr1(new double(3.5));
+                        boost::unique_ptr<int, fake_int<int> > uptr1(new double(3.5));
                     }
                     // 20.7.1.2-1 D can be a function pointer. Must supply a function pointer
                     {
@@ -197,8 +197,10 @@ namespace boost
                         bclass tmp = *ptr1;
                         // operator->
                         int x = ptr1->val;
+                        x += 1;
                         // get()
                         bclass* g = ptr1.get();
+                        x = g->val;
                         // get_deleter() const
                         ptr1.get_deleter();
                         ptr2.get_deleter();
