@@ -235,7 +235,7 @@ namespace boost
                  */
                 void invalid_compile_test(void)
                 {
-#if false
+//#if false
                     // 20.7.1.2 D shall not be an rvalue reference
                     boost::default_delete<int[]> del;
                     {
@@ -295,7 +295,7 @@ namespace boost
                         ptr1 = boost::move(ptr2);
                         ptr2 = boost::move(ptr3);
                     }
-#endif // temporary: hides some expected compile errors
+//#endif // temporary: hides some expected compile errors
                 }
 #endif
             }
