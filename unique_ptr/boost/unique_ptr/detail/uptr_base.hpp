@@ -423,7 +423,7 @@ namespace boost
     };
 }
 
-// TODO: swap specialization
+// swap specialization
 #if defined(BOOST_NO_CXX11_SMART_PTR)
 namespace std
 {

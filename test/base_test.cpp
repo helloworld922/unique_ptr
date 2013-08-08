@@ -7,7 +7,7 @@
 //  accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
-#define BOOST_UPTR_INVALID_TESTS
+//#define BOOST_UPTR_INVALID_TESTS
 
 #include "base_test.hpp"
 #include <fstream>

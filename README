@@ -12,6 +12,9 @@ This library provides C++11 unique_ptr for C++03 compilers.
 It tries to emulate standard behavior as closely as possible.
 The library will map to standard features when available.
 
+Some implementation details borrowed from Howard Hinnant's implementation:
+http://home.roadrunner.com/~hinnant/unique_ptr03.html
+
 ============
 Dependencies (only used when standard features not available)
 ============
@@ -28,10 +31,11 @@ Limitations
 - The class is not "move-constructable" from a std::auto_ptr if the compiler does not support true rvalue references.
 	To move an auto_ptr's resource to a unique_ptr in a C++03/C++11 independent manner:
 	my_uptr(my_aptr.release());
-- If D is a ref, the following should be a compiler error: unique_ptr<int, D&>(new int, D()) // should call unique_ptr(pointer, D&&)
-	Unfortunately, there's no implicit conversion from a rvalue to an rvalue ref and this actually binds to unique_ptr(pointer, D&)
-	This means it cannot detect if this is a compiler error or not (it should be)
 - unique_ptr can only be stored in move-aware containers. Unfortunately, C++03 containers such as std::vector, std::map, etc. are not move aware.
+	This isn't necessarily a limitation of this implementation, but of the container implementation.
+- swap can't perfectly forward deleters/user-defined pointers without C++11. I'm unsure of a good way around this.
+	There might be limited applications for argument dependent lookup, though I have my doubts this is a preferred solution.
+	The implementation doesn't use std::swap directly, just swap.
 	
 ============
 Usage/Building
@@ -40,7 +44,7 @@ Usage/Building
 This is a header-only library.
 
 To use this class, include <boost/unique_ptr.hpp>.
-For std::default_delete emulation you can include <boost/default_delete.hpp> (this is included by default).
+For std::default_delete emulation you can include <boost/default_delete.hpp> (this is included by boost/unique_ptr.hpp).
 
 All items are found in the boost namespace. See the standard C++11 library documentation for library documentation.
 
@@ -51,5 +55,5 @@ TODO
 As part of C++14's working draft it has been proposed/accepted to include make_unique.
 There are plans to include this in this library, but it has not been implemented yet.
 
-There may be missing checks particularly construction/assignment which are disallowed by the standard which this implementation allows.
-Unless stated otherwise in limitations, these are bugs and should be fixed. 
+Compile time tests are done. Unless stated in the limitations, code which should compile with C++11 std::unique_ptr will compile with this
+emulation, and code which should fail to compile do fail to compile. Runtime verification of results are still in the works.
