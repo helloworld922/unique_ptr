@@ -197,6 +197,8 @@ namespace boost
                         bclass tmp = ptr1[0];
                         // get()
                         bclass* g = ptr1.get();
+                        // just to get rid of compiler warning
+                        if(g);
                         // get_deleter() const
                         ptr1.get_deleter();
                         ptr2.get_deleter();

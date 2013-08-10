@@ -37,9 +37,9 @@ namespace boost
 #define BOOST_NULLPTR nullptr
 #endif
 
-#define BOOST_COMMA ,
+//#define BOOST_COMMA ,
 
-    namespace detail
+    namespace uptr_detail
     {
         // http://stackoverflow.com/a/3980926/558546
         // thanks to GManNickG for this solution for selectively typedef'ing
@@ -71,8 +71,59 @@ namespace boost
         {
             typedef T* type;
         };
+
+        // currently boost::forward doesn't handle lvalue refs right
+
+        //////////////////////////////////////////////////////////////////////////////
+        //
+        //                            forward()
+        //
+        //////////////////////////////////////////////////////////////////////////////
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+        // Is a boost::rv
+        template <class T>
+        inline typename ::boost::move_detail::enable_if_c
+            < enable_move_utility_emulation<T>::value && ::boost::move_detail::is_rv<T>::value,
+            typename remove_reference<T>::type&>::type
+        forward(BOOST_RV_REF(T) x) BOOST_NOEXCEPT
+        {
+           return x;
+        }
+
+        // if T is not a lvalue ref, not an rv value, T can be movable
+        template <class T>
+        inline typename enable_if_c
+            < !is_lvalue_reference<T>::value && enable_move_utility_emulation<T>::value &&
+            !::boost::move_detail::is_rv<T>::value && has_move_emulation_enabled<T>::value, BOOST_RV_REF(T)>::type
+        forward(T& x) BOOST_NOEXCEPT
+        {
+           return boost::move(x);
+        }
+
+        // if T is not a lvalue ref, not an rv value, T isnt' movable
+        template <class T>
+        inline typename enable_if_c
+           < !is_lvalue_reference<T>::value && enable_move_utility_emulation<T>::value &&
+           !::boost::move_detail::is_rv<T>::value && !has_move_emulation_enabled<T>::value, T&>::type
+           forward(T& x) BOOST_NOEXCEPT
+        {
+           return boost::move(x);
+        }
+
+        // if T is not an rv, is a lvalue ref
+        template <class T>
+        inline typename ::boost::move_detail::enable_if_c
+           < !::boost::move_detail::is_rv<T>::value && ::boost::move_detail::is_lvalue_reference<T>::value , T>::type
+               forward(T x) BOOST_NOEXCEPT
+        {
+           return x;
+        }
+#else
+        using std::forward;
+#endif
     }
 }
+
 #include <boost/unique_ptr/detail/uptr_base.hpp>
 #include <boost/unique_ptr/detail/uptr_arrays.hpp>
 #include <boost/unique_ptr/detail/uptr_comparison.hpp>
