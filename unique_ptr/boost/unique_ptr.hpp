@@ -80,17 +80,17 @@ namespace boost
         //
         //////////////////////////////////////////////////////////////////////////////
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-        // Is a boost::rv
+        // Is a boost::rv, forward as boost::rv
         template <class T>
         inline typename ::boost::move_detail::enable_if_c
-            < enable_move_utility_emulation<T>::value && ::boost::move_detail::is_rv<T>::value,
-            typename remove_reference<T>::type&>::type
+            < enable_move_utility_emulation<T>::value && !::boost::move_detail::is_rv<T>::value, BOOST_RV_REF(T) >::type
         forward(BOOST_RV_REF(T) x) BOOST_NOEXCEPT
         {
            return x;
         }
 
         // if T is not a lvalue ref, not an rv value, T can be movable
+        // forward as boost::rv
         template <class T>
         inline typename enable_if_c
             < !is_lvalue_reference<T>::value && enable_move_utility_emulation<T>::value &&
@@ -100,20 +100,22 @@ namespace boost
            return boost::move(x);
         }
 
-        // if T is not a lvalue ref, not an rv value, T isnt' movable
+        // if T is not a lvalue ref, not an rv value, T isn't movable
+        // forward as T&
         template <class T>
         inline typename enable_if_c
            < !is_lvalue_reference<T>::value && enable_move_utility_emulation<T>::value &&
            !::boost::move_detail::is_rv<T>::value && !has_move_emulation_enabled<T>::value, T&>::type
            forward(T& x) BOOST_NOEXCEPT
         {
-           return boost::move(x);
+           return x;
         }
 
         // if T is not an rv, is a lvalue ref
+        // forward as T&
         template <class T>
         inline typename ::boost::move_detail::enable_if_c
-           < !::boost::move_detail::is_rv<T>::value && ::boost::move_detail::is_lvalue_reference<T>::value , T>::type
+           < !::boost::move_detail::is_rv<T>::value && ::boost::move_detail::is_lvalue_reference<T>::value, T>::type
                forward(T x) BOOST_NOEXCEPT
         {
            return x;
