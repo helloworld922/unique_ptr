@@ -110,7 +110,7 @@ namespace boost
 //        {
 //            return ptr;
 //        }
-        // TODO: operator[]
+
         T& operator[](size_t i) const
         {
             return ptr[i];
