@@ -93,10 +93,9 @@ namespace boost
             if (this != &other)
             {
                 using std::swap;
-                // swap managed objects
-                swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
-                // swap deleter
-                swap(std::forward<D>(del), std::forward<D>(other.del));
+                // forward is already inside of swap
+                swap(ptr, other.ptr);
+                swap(del, other.del);
             }
         }
 #endif
