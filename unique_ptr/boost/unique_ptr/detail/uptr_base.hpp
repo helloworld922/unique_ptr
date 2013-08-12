@@ -23,7 +23,7 @@ namespace boost
         typedef T element_type;
         typedef D deleter_type;
         typedef typename ::boost::uptr_detail::pointer_type_switch<T, deleter_type,
-                ::boost::uptr_detail::has_pointer_type<D>::value>::type pointer;
+            ::boost::uptr_detail::has_pointer_type<D>::value>::type pointer;
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
     private:
@@ -32,15 +32,13 @@ namespace boost
 
     public:
         // No reference collapse rules in C++03, manually add it
-        deleter_lref get_deleter(
-                void)
+        deleter_lref get_deleter(void)
         {
             return del;
         }
 
         // No reference collapse rules in C++03, manually add it
-        const_deleter_lref get_deleter(
-                void) const
+        const_deleter_lref get_deleter(void) const
         {
             return del;
         }
@@ -91,14 +89,14 @@ namespace boost
         }
 #else
         void swap(unique_ptr& other)
+        {
+            if(this != &other)
             {
-                if(this != &other)
-                {
-                    using std::swap;
-                    swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
-                    swap(std::forward<D>(del), std::forward<D>(other.del));
-                }
+                using std::swap;
+                swap(std::forward<pointer>(ptr), std::forward<pointer>(other.ptr));
+                swap(std::forward<D>(del), std::forward<D>(other.del));
             }
+        }
 #endif
 
         typename add_lvalue_reference<T>::type operator*(void) const
@@ -362,7 +360,13 @@ namespace boost
         }
 #endif
 
-#if !defined(BOOST_NO_CXX11_NULLPTR)
+#if defined(BOOST_NO_CXX11_NULLPTR)
+        unique_ptr& operator=(nat*)
+        {
+            reset();
+            return *this;
+        }
+#else
         unique_ptr& operator=(std::nullptr_t)
         {
             reset();

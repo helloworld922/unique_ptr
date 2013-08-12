@@ -160,7 +160,18 @@ namespace boost
                             ptr1 = boost::move(ptr2);
                         }
                         // should be assignable to nullptr
-                        // C++03 limitation, there's no nullptr/nullptr_t type
+                        // C++03: can assign from NULL
+#if defined(BOOST_NO_CXX11_NULLPTR)
+                        {
+                            boost::unique_ptr<int[]> ptr1;
+                            ptr1 = NULL;
+                        }
+#else
+                        {
+                            boost::unique_ptr<int[]> ptr1;
+                            ptr1 = nullptr;
+                        }
+#endif
 
                         // move assign from unique_ptr<T, D&> to unique_ptr<T, D&>
                         // 20.7.1.2.3-1 D is a reference type, remove_reference<D>::type should be CopyAssignable
