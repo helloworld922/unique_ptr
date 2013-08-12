@@ -68,7 +68,7 @@ namespace boost
 
         void reset(pointer p = pointer())
         {
-            pointer old_ptr = boost::move(ptr);
+            pointer old_ptr = ptr;
             ptr = p;
             if (old_ptr != BOOST_NULLPTR)
             {
