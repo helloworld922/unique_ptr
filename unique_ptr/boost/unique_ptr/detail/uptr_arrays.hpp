@@ -21,7 +21,7 @@ namespace boost
     public:
         typedef T element_type;
         typedef D deleter_type;
-        typedef typename ::boost::uptr_detail::pointer_type_switch<T, deleter_type,
+        typedef typename ::boost::uptr_detail::pointer_type_switch<T, D,
             ::boost::uptr_detail::has_pointer_type<D>::value>::type pointer;
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
@@ -47,7 +47,7 @@ namespace boost
             return del;
         }
 
-        const deleter_type& get_deleter(void) const
+        const D& get_deleter(void) const
         {
             return del;
         }
@@ -253,7 +253,7 @@ namespace boost
 //#endif // BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS
 #else
         unique_ptr(unique_ptr&& u) :
-            ptr(std::move(u.release())), del(std::forward < deleter_type > (u.del))
+            ptr(std::move(u.release())), del(std::forward < D > (u.del))
         {
         }
 
@@ -294,17 +294,17 @@ namespace boost
             if(this != &r)
             {
                 reset(r.release());
-                // TODO: better way to forward?
-                if(is_reference<D>::value)
-                {
-                    // copy assign
-                    del = r.del;
-                }
-                else
-                {
-                    // move assign
-                    del = boost::move(r.del);
-                }
+                del = boost::uptr_detail::forward<D>(r.del);
+//                if(is_reference<D>::value)
+//                {
+//                    // copy assign
+//                    del = r.del;
+//                }
+//                else
+//                {
+//                    // move assign
+//                    del = boost::move(r.del);
+//                }
             }
             return *this;
         }
@@ -344,7 +344,7 @@ namespace boost
             {
                 reset(r.release());
                 // forward deleter
-                del = std::forward < deleter_type > (r.del);
+                del = std::forward < D > (r.del);
             }
             return *this;
         }
@@ -381,7 +381,7 @@ namespace boost
 
     private:
         pointer ptr;
-        deleter_type del;
+        D del;
 
         template<typename U, typename E>
         friend class unique_ptr;
