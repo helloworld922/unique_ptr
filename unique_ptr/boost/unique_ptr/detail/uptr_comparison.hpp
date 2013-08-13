@@ -55,9 +55,6 @@ namespace boost
     }
 
     // nullptr_t comparison operators
-#if defined(BOOST_NO_CXX11_NULLPTR)
-    class nullptr_nat;
-#endif
 
     template<class T, class D>
     bool operator ==(const ::boost::unique_ptr<T, D>& ptr, BOOST_NULLPTR_TYPE)

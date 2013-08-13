@@ -34,6 +34,7 @@ namespace boost
 #if defined(BOOST_NO_CXX11_NULLPTR)
 #define BOOST_NULLPTR NULL
 #define BOOST_NULLPTR_TYPE nullptr_nat*
+    class nullptr_nat;
 #else
 #define BOOST_NULLPTR nullptr
 #define BOOST_NULLPTR_TYPE std::nullptr_t

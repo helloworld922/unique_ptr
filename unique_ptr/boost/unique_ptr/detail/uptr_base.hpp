@@ -14,14 +14,13 @@
 
 namespace boost
 {
-
-    template<class T, class D>
-    class unique_ptr;
-
     template<class T, class D = default_delete<T> >
     class unique_ptr
     {
         BOOST_MOVABLE_BUT_NOT_COPYABLE (unique_ptr)
+
+        struct nat
+        {};
     public:
         typedef T element_type;
         typedef D deleter_type;
@@ -143,9 +142,19 @@ namespace boost
                 "Cannot default initialize deleter if it is a pointer or reference type.");
         }
 
-#if !defined(BOOST_NO_CXX11_NULLPTR)
-        unique_ptr(std::nullptr_t) :
-            boost::unique_ptr<T, D>()
+#if defined(BOOST_NO_CXX11_NULLPTR)
+        template<typename U>
+        unique_ptr(BOOST_NULLPTR_TYPE, typename enable_if_c< !is_pointer<pointer>::value && is_same<U, U>::value, nat >::type = nat()) :
+            ptr(), del()
+        {
+            // if D is a reference or pointer type this is ill-formed
+            BOOST_STATIC_ASSERT_MSG(
+                !(is_reference<D>::value || is_pointer<D>::value),
+                "Cannot default initialize deleter if it is a pointer or reference type.");
+        }
+#else
+        unique_ptr(BOOST_NULLPTR_TYPE) :
+            ptr(), del()
         {
             // if D is a reference or pointer type this is ill-formed
             BOOST_STATIC_ASSERT_MSG(
@@ -186,10 +195,6 @@ namespace boost
             BOOST_STATIC_ASSERT_MSG( !is_reference<D>::value, "cannot instantiate D& with rvalue deleter" );
         }
 
-    private:
-        struct nat
-        {};
-    public:
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
         // needed to satisfy factory constructor
         unique_ptr(BOOST_RV_REF_BEG unique_ptr BOOST_RV_REF_END u) : ptr(u.release()), del(::boost::uptr_detail::forward<D>(u.del))
@@ -367,54 +372,11 @@ namespace boost
         template<typename U, typename E>
         friend class unique_ptr;
 
-#if defined(BOOST_NO_CXX11_NULLPTR)
-        unique_ptr& operator=(nat*)
+        unique_ptr& operator=(BOOST_NULLPTR_TYPE)
         {
             reset();
             return *this;
         }
-
-//        template<class U, class E>
-//        friend bool operator == <>(const ::boost::unique_ptr<T, D>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        friend bool operator == <>(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<T, D>& ptr);
-//
-//        template<class U, class E>
-//        friend bool operator !=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        template<class U, class E>
-//        friend bool operator !=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
-//
-//        template<class U, class E>
-//        friend bool operator <(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        template<class U, class E>
-//        friend bool operator <(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
-//
-//        template<class U, class E>
-//        friend bool operator <=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        template<class U, class E>
-//        friend bool operator <=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
-//
-//        template<class U, class E>
-//        friend bool operator >(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        template<class U, class E>
-//        friend bool operator >(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
-//
-//        template<class U, class E>
-//        friend bool operator >=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
-//
-//        template<class U, class E>
-//        friend bool operator >=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
-#else
-        unique_ptr& operator=(std::nullptr_t)
-        {
-            reset();
-            return *this;
-        }
-#endif
 
     private:
         pointer ptr;
