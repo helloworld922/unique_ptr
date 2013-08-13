@@ -216,7 +216,6 @@ namespace boost
                         ptr1.get_deleter();
                         ptr2.get_deleter();
                         // operator bool checks
-                        // limitation: C++03 uses a safe-bool idiom so it doesn't behave exactly like a bool
                         if(!ptr1)
                         {
                         }

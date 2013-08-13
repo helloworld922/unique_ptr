@@ -33,8 +33,10 @@ namespace boost
 
 #if defined(BOOST_NO_CXX11_NULLPTR)
 #define BOOST_NULLPTR NULL
+#define BOOST_NULLPTR_TYPE nullptr_nat*
 #else
 #define BOOST_NULLPTR nullptr
+#define BOOST_NULLPTR_TYPE std::nullptr_t
 #endif
 
 //#define BOOST_COMMA ,
@@ -131,6 +133,7 @@ namespace boost
 #include <boost/unique_ptr/detail/uptr_comparison.hpp>
 
 #undef BOOST_NULLPTR
+#undef BOOST_NULLPTR_TYPE
 #undef BOOST_COMMA
 #else
 // use standard library features

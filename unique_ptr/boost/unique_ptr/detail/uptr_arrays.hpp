@@ -371,6 +371,8 @@ namespace boost
             reset();
             return *this;
         }
+
+
 #else
         unique_ptr& operator=(std::nullptr_t)
         {

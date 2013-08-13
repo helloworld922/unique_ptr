@@ -15,6 +15,9 @@
 namespace boost
 {
 
+    template<class T, class D>
+    class unique_ptr;
+
     template<class T, class D = default_delete<T> >
     class unique_ptr
     {
@@ -361,12 +364,50 @@ namespace boost
         }
 #endif
 
+        template<typename U, typename E>
+        friend class unique_ptr;
+
 #if defined(BOOST_NO_CXX11_NULLPTR)
         unique_ptr& operator=(nat*)
         {
             reset();
             return *this;
         }
+
+//        template<class U, class E>
+//        friend bool operator == <>(const ::boost::unique_ptr<T, D>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        friend bool operator == <>(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<T, D>& ptr);
+//
+//        template<class U, class E>
+//        friend bool operator !=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        template<class U, class E>
+//        friend bool operator !=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
+//
+//        template<class U, class E>
+//        friend bool operator <(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        template<class U, class E>
+//        friend bool operator <(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
+//
+//        template<class U, class E>
+//        friend bool operator <=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        template<class U, class E>
+//        friend bool operator <=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
+//
+//        template<class U, class E>
+//        friend bool operator >(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        template<class U, class E>
+//        friend bool operator >(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
+//
+//        template<class U, class E>
+//        friend bool operator >=(const ::boost::unique_ptr<U, E>& ptr, BOOST_NULLPTR_TYPE);
+//
+//        template<class U, class E>
+//        friend bool operator >=(BOOST_NULLPTR_TYPE, const ::boost::unique_ptr<U, E>& ptr);
 #else
         unique_ptr& operator=(std::nullptr_t)
         {
@@ -378,9 +419,6 @@ namespace boost
     private:
         pointer ptr;
         deleter_type del;
-
-        template<typename U, typename E>
-        friend class unique_ptr;
     };
 
     template<typename T, typename D>
