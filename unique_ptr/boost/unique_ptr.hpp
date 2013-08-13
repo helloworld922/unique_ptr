@@ -14,18 +14,18 @@
 #ifndef BOOST_UNIQUE_PTR_HPP
 #define BOOST_UNIQUE_PTR_HPP
 
-#include <boost/config.hpp>
+//#include <boost/config.hpp>
 
 #include <boost/default_delete.hpp>
 
 #if defined(BOOST_NO_CXX11_SMART_PTR)
 //#include <boost/move/move.hpp>
 #include <boost/static_assert.hpp>
-#include <functional>
+//#include <functional>
 //#include <boost/type_traits.hpp>
 #endif
 
-#include <memory>
+//#include <memory>
 
 namespace boost
 {
