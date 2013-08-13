@@ -27,7 +27,8 @@ Boost.Config
 Limitations
 ============
 
-- Use of std::nullptr_t/nullptr is only enabled with compiler support.
+- There is provisional support for nullptr/nullptr_t emulated using nat's (not a type, basically undefined/hidden classes).
+	Anywhere nullptr is used, you should be able to use NULL.
 - The class is not "move-constructable" from a std::auto_ptr if the compiler does not support true rvalue references.
 	To move an auto_ptr's resource to a unique_ptr in a C++03/C++11 independent manner:
 	my_uptr(my_aptr.release());
